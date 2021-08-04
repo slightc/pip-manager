@@ -1,0 +1,9 @@
+{
+    "pip-manager.view.title":"Pip Manager",
+    "pip-manager.view.installed":"Installed",
+    "pip-manager.view.installed.wait":"wait init ... ",
+    "pip-manager.command.addPackage": "Add Python Package",
+    "pip-manager.command.refreshPackage": "Refresh Package List",
+    "pip-manager.command.removePackage": "Remove",
+    "pip-manager.command.packageDescription": "Open in PyPI"
+}

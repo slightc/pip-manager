@@ -23,22 +23,22 @@
 		"commands": [
 			{
 				"command": "pip-manager.removePackage",
-				"title": "Remove",
+				"title": "%pip-manager.command.removePackage%",
 				"description": "remove python package"
 			},
 			{
 				"command": "pip-manager.packageDescription",
-				"title": "Open in PyPI",
+				"title": "%pip-manager.command.packageDescription%",
 				"description": "show python package description"
 			},
 			{
 				"command": "pip-manager.addPackage",
-				"title": "Add Python Package",
+				"title": "%pip-manager.command.addPackage%",
 				"icon": "$(add)"
 			},
 			{
 				"command": "pip-manager.refreshPackage",
-				"title": "Refresh Package List",
+				"title": "%pip-manager.command.refreshPackage%",
 				"icon": "$(refresh)"
 			}
 		],
@@ -70,7 +70,7 @@
 			"activitybar": [
 				{
 					"id": "pip-manager-explorer",
-					"title": "Pip Manager",
+					"title": "%pip-manager.view.title%",
 					"icon": "media/dep.svg"
 				}
 			]
@@ -79,22 +79,14 @@
 			"pip-manager-explorer": [
 				{
 					"id": "pip-manager-installed",
-					"name": "Installed"
+					"name": "%pip-manager.view.installed%"
 				}
 			]
 		},
 		"viewsWelcome": [
 			{
-				"view": "pip-manager-action",
-				"contents": "[Add Package](command:pip-manager.addPackage)"
-			},
-			{
-				"view": "pip-manager-action",
-				"contents": "[Search Package](command:nodeDependencies.searchPackage)"
-			},
-			{
 				"view": "pip-manager-installed",
-				"contents": "wait init ... "
+				"contents": "%pip-manager.view.installed.wait%"
 			}
 		]
 	},

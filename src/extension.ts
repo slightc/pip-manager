@@ -4,6 +4,7 @@ import * as vscode from 'vscode';
 import { DataItem, DataProvider } from './dataProvider';
 import { PythonExtensionApi } from './pythonApi';
 import { PackageManager } from './packageManager';
+import { i18n } from './i18n/localize';
 
 
 // this method is called when your extension is activated
@@ -15,7 +16,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	const pythonExt = vscode.extensions.getExtension<PythonExtensionApi>('ms-python.python');
 
 	if(!pythonExt){
-		vscode.window.showErrorMessage('Please install python extension');
+		vscode.window.showErrorMessage(i18n.localize('pip-manager.tip.installPython', 'Please install python extension'));
 		return;
 	}
 
@@ -45,11 +46,11 @@ export async function activate(context: vscode.ExtensionContext) {
 		dataProvider.refresh();
 	}));
 	context.subscriptions.push(vscode.commands.registerCommand('pip-manager.addPackage', async () => {
-		const value = await vscode.window.showInputBox({ title: 'input install package name' });
+		const value = await vscode.window.showInputBox({ title: i18n.localize('pip-manager.input.addPackage', 'input install package name') });
 		if(value){
 			vscode.window.withProgress({
 				location: vscode.ProgressLocation.Notification,
-				title: `installing package ${value}`,
+				title: i18n.localize('pip-manager.tip.addPackage', 'installing package %0%', `${value}`),
 			}, async () => {
 				await pip.addPackage(value);
 				dataProvider.refresh();
@@ -62,7 +63,7 @@ export async function activate(context: vscode.ExtensionContext) {
 			'pip', 'setuptools', 'wheel',
 		];
 		if (necessaryPackage.includes(name)) {
-			vscode.window.showWarningMessage(`package ${necessaryPackage} cannot remove`);
+			vscode.window.showWarningMessage(i18n.localize('pip-manager.tip.disableRemove', 'package %0% cannot remove',`${necessaryPackage}`));
 			return false;
 		}
 		return true;
@@ -71,7 +72,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(vscode.commands.registerCommand('pip-manager.removePackage', async (e?: DataItem) => {
 		let value = '';
 		if(!e){
-			value = await vscode.window.showInputBox({ title: 'input remove package name' }) || '';
+			value = await vscode.window.showInputBox({ title: i18n.localize('pip-manager.input.removePackage', 'input remove package name') }) || '';
 		}else{
 			value = e.label;
 		}
@@ -81,7 +82,7 @@ export async function activate(context: vscode.ExtensionContext) {
 		}
 		vscode.window.withProgress({
 			location: vscode.ProgressLocation.Notification,
-			title: `remove package ${value}`,
+			title: i18n.localize('pip-manager.tip.removePackage', 'remove package %0%', `${value}`),
 		}, async () => {
 			await pip.removePackage(value);
 			dataProvider.refresh();
@@ -90,7 +91,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(vscode.commands.registerCommand('pip-manager.packageDescription', async (e?: DataItem) => {
 		let value = '';
 		if (!e) {
-			value = await vscode.window.showInputBox({ title: 'input remove package name' }) || '';
+			value = await vscode.window.showInputBox({ title: i18n.localize('pip-manager.input.packageDescription', 'input find package name') }) || '';
 		} else {
 			value = e.label;
 		}

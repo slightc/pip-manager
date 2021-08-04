@@ -1,0 +1,9 @@
+{
+    "pip-manager.view.title":"Pip管理",
+    "pip-manager.view.installed":"已安装",
+    "pip-manager.view.installed.wait":"等待加载完成 ... ",
+    "pip-manager.command.addPackage": "添加Python包",
+    "pip-manager.command.refreshPackage": "刷新列表",
+    "pip-manager.command.removePackage": "移除",
+    "pip-manager.command.packageDescription": "在PyPI中打开"
+}
