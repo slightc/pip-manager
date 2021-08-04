@@ -40,6 +40,10 @@
 				"command": "pip-manager.refreshPackage",
 				"title": "%pip-manager.command.refreshPackage%",
 				"icon": "$(refresh)"
+			},
+			{
+				"command": "pip-manager.copyPackageName",
+				"title": "%pip-manager.command.copyPackageName%"
 			}
 		],
 		"menus": {
@@ -62,6 +66,10 @@
 				},
 				{
 					"command": "pip-manager.packageDescription",
+					"when": "view == pip-manager-installed"
+				},
+				{
+					"command": "pip-manager.copyPackageName",
 					"when": "view == pip-manager-installed"
 				}
 			]

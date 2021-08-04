@@ -105,8 +105,18 @@ export async function activate(context: vscode.ExtensionContext) {
 		if (!value) {
 			return;
 		}
-
 		vscode.env.openExternal(vscode.Uri.parse(`https://pypi.org/project/${value}/`));
+	}));
+
+	context.subscriptions.push(vscode.commands.registerCommand('pip-manager.copyPackageName', async (e?: DataItem) => {
+		if (!e) {
+			return;
+		}
+		const value = e.label;
+		if (!value) {
+			return;
+		}
+		vscode.env.clipboard.writeText(value);
 	}));
 }
 
