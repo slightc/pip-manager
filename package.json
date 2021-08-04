@@ -4,6 +4,7 @@
 	"description": "manage python package",
 	"version": "1.0.0",
 	"publisher": "slightc",
+	"icon": "media/logo.png",
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/slightc/pip-manager"
