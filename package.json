@@ -16,8 +16,7 @@
 		"Other"
 	],
 	"activationEvents": [
-		"onStartupFinished",
-		"onCommand:pip-manager.helloWorld"
+		"onStartupFinished"
 	],
 	"main": "./out/extension.js",
 	"contributes": {
