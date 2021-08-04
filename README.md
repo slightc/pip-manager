@@ -13,6 +13,8 @@ Manager Python package in vscode
 ![package-list](https://raw.githubusercontent.com/slightc/pip-manager/main/doc/img/package-remove.png)
 
 ### open package description in pypi
+### copy package name
+### install package from requirements.txt
 
 ## Requirements
 
