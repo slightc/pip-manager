@@ -1,0 +1,111 @@
+{
+  "name": "pip-manager",
+	"displayName": "Pip Manager",
+	"description": "manage python package",
+	"version": "0.0.1",
+	"engines": {
+		"vscode": "^1.58.0"
+	},
+	"categories": [
+		"Other"
+	],
+	"activationEvents": [
+		"onStartupFinished",
+        "onCommand:pip-manager.helloWorld"
+	],
+	"main": "./out/extension.js",
+	"contributes": {
+		"commands": [
+			{
+				"command": "pip-manager.removePackage",
+				"title": "Remove",
+				"description": "remove python package"
+			},
+			{
+				"command": "pip-manager.addPackage",
+				"title": "Add Python Package",
+				"icon": "$(add)"
+			},
+			{
+				"command": "pip-manager.refreshPackage",
+				"title": "Refresh Package List",
+				"icon": "$(refresh)"
+			}
+		],
+		"menus": {
+			"view/title": [
+				{
+					"command": "pip-manager.addPackage",
+					"when": "view == pip-manager-installed",
+					"group": "navigation"
+				},
+				{
+					"command": "pip-manager.refreshPackage",
+					"when": "view == pip-manager-installed",
+					"group": "navigation"
+				}
+			],
+			"view/item/context": [
+				{
+					"command": "pip-manager.removePackage",
+					"when": "view == pip-manager-installed"
+				}
+			]
+		},
+		"viewsContainers": {
+			"activitybar": [
+				{
+					"id": "pip-manager-explorer",
+					"title": "Pip Manager",
+					"icon": "media/dep.svg"
+				}
+			]
+		},
+		"views": {
+			"pip-manager-explorer": [
+				{
+					"id": "pip-manager-installed",
+					"name": "Installed"
+				}
+			]
+		},
+		"viewsWelcome": [
+			{
+			  "view": "pip-manager-action",
+			  "contents": "[Add Package](command:pip-manager.addPackage)"
+			},
+			{
+			  "view": "pip-manager-action",
+			  "contents": "[Search Package](command:nodeDependencies.searchPackage)"
+			},
+			{
+			  "view": "pip-manager-installed",
+			  "contents": "wait init ... "
+			}
+		  ]
+	},
+	"extensionDependencies":[
+		"ms-python.python"
+	],
+	"scripts": {
+		"vscode:prepublish": "yarn run compile",
+		"compile": "tsc -p ./",
+		"watch": "tsc -watch -p ./",
+		"pretest": "yarn run compile && yarn run lint",
+		"lint": "eslint src --ext ts",
+		"test": "node ./out/test/runTest.js"
+	},
+	"devDependencies": {
+		"@types/vscode": "^1.58.0",
+		"@types/glob": "^7.1.3",
+		"@types/mocha": "^8.2.2",
+		"@types/node": "14.x",
+		"eslint": "^7.27.0",
+		"@typescript-eslint/eslint-plugin": "^4.26.0",
+		"@typescript-eslint/parser": "^4.26.0",
+		"glob": "^7.1.7",
+		"mocha": "^8.4.0",
+		"typescript": "^4.3.2",
+		"vscode-test": "^1.5.2"
+	}
+}
