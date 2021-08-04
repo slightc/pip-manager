@@ -44,6 +44,10 @@
 			{
 				"command": "pip-manager.copyPackageName",
 				"title": "%pip-manager.command.copyPackageName%"
+			},
+			{
+				"command": "pip-manager.installRequirements",
+				"title": "%pip-manager.command.installRequirements%"
 			}
 		],
 		"menus": {
@@ -71,6 +75,25 @@
 				{
 					"command": "pip-manager.copyPackageName",
 					"when": "view == pip-manager-installed"
+				}
+				
+			],
+			"editor/title/context": [
+				{
+					"command": "pip-manager.installRequirements",
+					"when": "resourceFilename == requirements.txt"
+				}
+			],
+			"editor/context": [
+				{
+					"command": "pip-manager.installRequirements",
+					"when": "resourceFilename == requirements.txt"
+				}
+			],
+			"explorer/context": [
+				{
+					"command": "pip-manager.installRequirements",
+					"when": "resourceFilename == requirements.txt"
 				}
 			]
 		},

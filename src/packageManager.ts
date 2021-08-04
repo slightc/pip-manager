@@ -102,6 +102,17 @@ export class PackageManager {
         }
         await this.pip(args, cancelToken);
     }
+    public async addPackageFromFile(filePath: string, cancelToken?: vscode.CancellationToken, source = Source.tsinghua) {
+        if (!path) {
+            throw new Error('Invalid Path');
+        }
+
+        const args = ['install', '-r', filePath];
+        if (source) {
+            args.push('-i', source);
+        }
+        await this.pip(args, cancelToken);
+    }
 
     public async removePackage(pack: string | { name: string }) {
         let name: string = '';

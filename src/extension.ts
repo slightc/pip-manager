@@ -5,6 +5,7 @@ import { DataItem, DataProvider } from './dataProvider';
 import { PythonExtensionApi } from './pythonApi';
 import { PackageManager } from './packageManager';
 import { i18n } from './i18n/localize';
+import path = require('path');
 
 
 // this method is called when your extension is activated
@@ -117,6 +118,25 @@ export async function activate(context: vscode.ExtensionContext) {
 			return;
 		}
 		vscode.env.clipboard.writeText(value);
+	}));
+
+	context.subscriptions.push(vscode.commands.registerCommand('pip-manager.installRequirements', async (e?: vscode.Uri) => {
+		if (!e) {
+			return;
+		}
+		const filePath = e.path;
+		if (!filePath) {
+			return;
+		}
+		outputChannel.clear();
+		vscode.window.withProgress({
+			location: vscode.ProgressLocation.Notification,
+			title: i18n.localize('pip-manager.tip.addPackageFromFile', 'installing package in %0%', path.basename(e.path)),
+			cancellable: true,
+		}, async (progress, cancelToken) => {
+			await pip.addPackageFromFile(filePath, cancelToken);
+			dataProvider.refresh();
+		});
 	}));
 }
 

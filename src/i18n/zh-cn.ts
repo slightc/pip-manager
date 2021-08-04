@@ -7,5 +7,6 @@ export default {
         "pip-manager.tip.addPackage": "正在安装 %0%",
         "pip-manager.tip.removePackage": "正在移除 %0%",
         "pip-manager.tip.installPython": "请先安装Python插件",
+        "pip-manager.tip.addPackageFromFile": "正在安装 %0% 中的包",
     }
 };
