@@ -2,7 +2,7 @@
 	"name": "pip-manager",
 	"displayName": "Pip Manager",
 	"description": "manage python package",
-	"version": "1.0.5",
+	"version": "1.0.6",
 	"publisher": "slightc",
 	"icon": "media/logo.png",
 	"repository": {
