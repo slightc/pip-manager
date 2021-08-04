@@ -1,8 +1,8 @@
 {
-  "name": "pip-manager",
+	"name": "pip-manager",
 	"displayName": "Pip Manager",
 	"description": "manage python package",
-	"version": "1.0.0",
+	"version": "1.0.1",
 	"publisher": "slightc",
 	"icon": "media/logo.png",
 	"repository": {
@@ -17,7 +17,7 @@
 	],
 	"activationEvents": [
 		"onStartupFinished",
-        "onCommand:pip-manager.helloWorld"
+		"onCommand:pip-manager.helloWorld"
 	],
 	"main": "./out/extension.js",
 	"contributes": {
@@ -77,20 +77,20 @@
 		},
 		"viewsWelcome": [
 			{
-			  "view": "pip-manager-action",
-			  "contents": "[Add Package](command:pip-manager.addPackage)"
+				"view": "pip-manager-action",
+				"contents": "[Add Package](command:pip-manager.addPackage)"
 			},
 			{
-			  "view": "pip-manager-action",
-			  "contents": "[Search Package](command:nodeDependencies.searchPackage)"
+				"view": "pip-manager-action",
+				"contents": "[Search Package](command:nodeDependencies.searchPackage)"
 			},
 			{
-			  "view": "pip-manager-installed",
-			  "contents": "wait init ... "
+				"view": "pip-manager-installed",
+				"contents": "wait init ... "
 			}
-		  ]
+		]
 	},
-	"extensionDependencies":[
+	"extensionDependencies": [
 		"ms-python.python"
 	],
 	"scripts": {
