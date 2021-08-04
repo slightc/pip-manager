@@ -10,7 +10,7 @@
 		"url": "https://github.com/slightc/pip-manager"
 	},
 	"engines": {
-		"vscode": "^1.58.0"
+		"vscode": "^1.47.0"
 	},
 	"categories": [
 		"Other"
