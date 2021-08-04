@@ -87,6 +87,19 @@ export async function activate(context: vscode.ExtensionContext) {
 			dataProvider.refresh();
 		});
 	}));
+	context.subscriptions.push(vscode.commands.registerCommand('pip-manager.packageDescription', async (e?: DataItem) => {
+		let value = '';
+		if (!e) {
+			value = await vscode.window.showInputBox({ title: 'input remove package name' }) || '';
+		} else {
+			value = e.label;
+		}
+		if (!value) {
+			return;
+		}
+
+		vscode.env.openExternal(vscode.Uri.parse(`https://pypi.org/project/${value}/`));
+	}));
 }
 
 // this method is called when your extension is deactivated

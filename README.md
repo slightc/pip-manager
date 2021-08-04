@@ -12,6 +12,8 @@ Manager Python package in vscode
 ### remove Python package
 ![package-list](https://raw.githubusercontent.com/slightc/pip-manager/main/doc/img/package-remove.png)
 
+### open package description in pypi
+
 ## Requirements
 
 must be installed Python Extension (ms-python.python)
@@ -20,6 +22,9 @@ must be installed Python Extension (ms-python.python)
 
 ## Release Notes
 
+### 1.0.5
+
+Add open package description in pypi
 ### 1.0.0
 
 Initial release of Pip Manager

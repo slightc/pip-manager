@@ -27,6 +27,11 @@
 				"description": "remove python package"
 			},
 			{
+				"command": "pip-manager.packageDescription",
+				"title": "Open in PyPI",
+				"description": "show python package description"
+			},
+			{
 				"command": "pip-manager.addPackage",
 				"title": "Add Python Package",
 				"icon": "$(add)"
@@ -53,6 +58,10 @@
 			"view/item/context": [
 				{
 					"command": "pip-manager.removePackage",
+					"when": "view == pip-manager-installed"
+				},
+				{
+					"command": "pip-manager.packageDescription",
 					"when": "view == pip-manager-installed"
 				}
 			]
