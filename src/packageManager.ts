@@ -13,7 +13,7 @@ enum Source {
 }
 
 export class PackageManager {
-    constructor(private _pythonPath?: string) { }
+    constructor(private _pythonPath: string, private readonly output: vscode.OutputChannel) { }
 
     updatePythonPath(path: string) {
         this._pythonPath = path;
@@ -27,23 +27,35 @@ export class PackageManager {
         return this._pythonPath || this.defaultPath;
     }
 
-    private execute(command: string, args: string[]): Promise<any> {
+    private execute(command: string, args: string[], cancelToken?: vscode.CancellationToken): Promise<any> {
         return new Promise((resolve, reject) => {
             let errMsg = '';
             let out = '';
             const p = spawn(command, args);
 
+            this.output.appendLine(`exec ${command} ${args.join(' ')}`);
+
+            if (cancelToken) {
+                cancelToken.onCancellationRequested(() => {
+                    this.output.appendLine('cancel command');
+                    p.kill();
+                });
+            }
+
             p.stdout.on('data', (data: string) => {
+                this.output.appendLine(data);
                 out = data;
             });
 
             p.stderr.on('data', (data: string) => {
-                if(!errMsg && !(data.indexOf('WARNING') === 0)) {
+                if(!(data.indexOf('WARNING') === 0)) {
+                    this.output.appendLine(data);
                     errMsg = data;
                 }
             });
 
             p.on('close', (code) => {
+                this.output.appendLine('');
                 if (!code) {
                     resolve(out);
                 } else {
@@ -55,11 +67,12 @@ export class PackageManager {
         });
     }
 
-    private pip(args: string[]) {
+    private pip(args: string[], cancelToken?: vscode.CancellationToken) {
         const python = this.pythonPath;
         return this.execute(python, ['-m', 'pip']
             .concat(args)
-            .concat([])
+            .concat([]),
+            cancelToken
         ).catch((err) => {
             vscode.window.showErrorMessage(err.message);
             return Promise.reject();
@@ -71,7 +84,7 @@ export class PackageManager {
         return JSON.parse(packages);
     }
 
-    public async addPackage(pack: string | { name: string; version?: string }, source = Source.tsinghua) {
+    public async addPackage(pack: string | { name: string; version?: string }, cancelToken?: vscode.CancellationToken, source = Source.tsinghua) {
         let name: string = '';
         if (typeof pack === 'string') {
             name = pack;
@@ -87,7 +100,7 @@ export class PackageManager {
         if (source) {
             args.push('-i', source);
         }
-        await this.pip(args);
+        await this.pip(args, cancelToken);
     }
 
     public async removePackage(pack: string | { name: string }) {

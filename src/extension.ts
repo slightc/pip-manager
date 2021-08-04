@@ -29,9 +29,14 @@ export async function activate(context: vscode.ExtensionContext) {
 		return executionDetails?.execCommand?.[0] || '';
 	}
 
+	const outputChannel = vscode.window.createOutputChannel('Pip Manager');
+
+	outputChannel.clear();
+	outputChannel.appendLine('Pip Manager Start');
+
 	const pythonPath = getPythonPath(pythonExt);
 
-	const pip = new PackageManager(pythonPath);
+	const pip = new PackageManager(pythonPath, outputChannel);
 	const dataProvider = new DataProvider(pip);
 
 	context.subscriptions.push(pythonExt.exports.settings.onDidChangeExecutionDetails((e) => {
@@ -48,11 +53,13 @@ export async function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(vscode.commands.registerCommand('pip-manager.addPackage', async () => {
 		const value = await vscode.window.showInputBox({ title: i18n.localize('pip-manager.input.addPackage', 'input install package name') });
 		if(value){
+			outputChannel.clear();
 			vscode.window.withProgress({
 				location: vscode.ProgressLocation.Notification,
 				title: i18n.localize('pip-manager.tip.addPackage', 'installing package %0%', `${value}`),
-			}, async () => {
-				await pip.addPackage(value);
+				cancellable: true,
+			}, async (progress, cancelToken) => {
+				await pip.addPackage(value, cancelToken);
 				dataProvider.refresh();
 			});
 		}
