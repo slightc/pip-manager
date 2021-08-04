@@ -3,9 +3,14 @@
 Manager Python package in vscode
 ## Features
 
-* list all Python package
-* install Python package
-* remove Python package
+### list all Python package
+![package-list](https://github.com/slightc/pip-manager/blob/main/doc/img/package-list.png)
+
+### install Python package
+![package-list](https://github.com/slightc/pip-manager/blob/main/doc/img/package-add.png)
+
+### remove Python package
+![package-list](https://github.com/slightc/pip-manager/blob/main/doc/img/package-remove.png)
 
 ## Requirements
 
