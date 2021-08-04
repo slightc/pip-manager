@@ -2,7 +2,7 @@
 	"name": "pip-manager",
 	"displayName": "Pip Manager",
 	"description": "manage python package",
-	"version": "1.0.7",
+	"version": "1.0.8",
 	"publisher": "slightc",
 	"icon": "media/logo.png",
 	"repository": {
@@ -76,7 +76,6 @@
 					"command": "pip-manager.copyPackageName",
 					"when": "view == pip-manager-installed"
 				}
-				
 			],
 			"editor/title/context": [
 				{
