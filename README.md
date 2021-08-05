@@ -4,13 +4,13 @@ Manager Python package in vscode
 ## Features
 
 ### list all Python package
-![package-list](https://raw.githubusercontent.com/slightc/pip-manager/main/doc/img/package-list.png)
+![package-list](https://gitee.com/slightc/pip-manager/raw/main/doc/img/package-list.png)
 
 ### install Python package
-![package-list](https://raw.githubusercontent.com/slightc/pip-manager/main/doc/img/package-add.png)
+![package-list](https://gitee.com/slightc/pip-manager/raw/main/doc/img/package-add.png)
 
 ### remove Python package
-![package-list](https://raw.githubusercontent.com/slightc/pip-manager/main/doc/img/package-remove.png)
+![package-list](https://gitee.com/slightc/pip-manager/raw/main/doc/img/package-remove.png)
 
 ### other
 * open package description in pypi
