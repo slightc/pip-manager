@@ -1,4 +1,4 @@
-# pip-manager README
+# Pip Manager README
 
 Manager Python package in vscode
 
