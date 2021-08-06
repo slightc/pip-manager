@@ -1,6 +1,10 @@
 # pip-manager README
 
 Manager Python package in vscode
+
+### Portal
+* [in vscode marketplace](https://marketplace.visualstudio.com/items?itemName=slightc.pip-manager)
+* [in github](https://github.com/slightc/pip-manager)
 ## Features
 
 ### list all Python package
