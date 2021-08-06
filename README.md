@@ -1,3 +1,11 @@
+[github-shield]: https://img.shields.io/github/stars/slightc/pip-manager?style=social
+[github-url]: https://github.com/slightc/pip-manager
+[vscode-shield]: https://img.shields.io/visual-studio-marketplace/i/slightc.pip-manager?logo=visual-studio-code&style=social
+[vscode-url]: https://marketplace.visualstudio.com/items?itemName=slightc.pip-manager
+
+[![VSCode Plugin][vscode-shield]][vscode-url]
+[![Github Repo][github-shield]][github-url]
+
 # Pip Manager README
 
 Manager Python package in vscode
