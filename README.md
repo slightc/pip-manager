@@ -25,6 +25,9 @@ Manager Python package in vscode
 ### remove Python package
 ![package-list](https://gitee.com/slightc/pip-manager/raw/main/doc/img/package-remove.png)
 
+### search Python package
+![package-list](https://gitee.com/slightc/pip-manager/raw/main/doc/img/package-search.png)
+
 ### other
 * open package description in pypi
 * copy package name
@@ -38,6 +41,10 @@ must be installed Python Extension (ms-python.python)
 ## Known Issues
 
 ## Release Notes
+
+### 1.0.12
+
+Add search package from PyPI
 
 ### 1.0.5
 

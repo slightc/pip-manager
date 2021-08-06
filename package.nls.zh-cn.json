@@ -7,5 +7,6 @@
     "pip-manager.command.removePackage": "移除",
     "pip-manager.command.packageDescription": "在PyPI中打开",
     "pip-manager.command.copyPackageName": "复制包名",
-    "pip-manager.command.installRequirements": "安装这个文件中的python包"
+    "pip-manager.command.installRequirements": "安装这个文件中的python包",
+    "pip-manager.command.searchPackage": "从PyPI搜索包"
 }

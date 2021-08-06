@@ -7,5 +7,6 @@
     "pip-manager.command.removePackage": "Remove",
     "pip-manager.command.packageDescription": "Open in PyPI",
     "pip-manager.command.copyPackageName": "Copy Name",
-    "pip-manager.command.installRequirements": "Install python package from file"
+    "pip-manager.command.installRequirements": "Install python package from file",
+    "pip-manager.command.searchPackage": "Search Package From PyPI"
 }

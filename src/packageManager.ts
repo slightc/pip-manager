@@ -2,6 +2,8 @@ import { spawn } from 'child_process';
 import * as path from 'path';
 import * as os from 'os';
 import * as vscode from 'vscode';
+import axios from 'axios';
+import * as xml2js from 'xml2js';
 
 interface PackageInfo {
     name: string;
@@ -11,6 +13,15 @@ interface PackageInfo {
 enum Source {
     tsinghua = 'https://pypi.tuna.tsinghua.edu.cn/simple',
 }
+
+enum Category {
+    python3 = 'Programming Language :: Python :: 3',
+    education = 'Intended Audience :: Education',
+    stable = 'Development Status :: 5 - Production/Stable',
+    empty = '',
+}
+
+const defaultCategory = encodeURI(Category.stable);
 
 export class PackageManager {
     constructor(private _pythonPath: string, private readonly output: vscode.OutputChannel) { }
@@ -127,5 +138,53 @@ export class PackageManager {
         }
 
         await this.pip(['uninstall', name, '-y']);
+    }
+
+    public async searchFromPyPi(keyword: string, page = 1) {
+        const resp = await axios({
+            method: 'GET',
+            url: `https://pypi.org/search/?q=${keyword}&page=${page}${keyword ? '' : `&c=${defaultCategory}`
+                }`,
+        });
+        const [resultXml] =
+            RegExp(
+                '<ul class="unstyled" aria-label="Search results">[\\s\\S]*?</ul>'
+            ).exec(resp.data) || [];
+        if (!resultXml) {return Promise.reject({ type: 'no result' });}
+        const [paginationXml] =
+            RegExp(
+                '<div class="button-group button-group--pagination">[\\s\\S]*?</div>'
+            ).exec(resp.data) || [];
+        const result = await xml2js.parseStringPromise(resultXml, {
+            explicitArray: false,
+        });
+
+        const list: vscode.QuickPickItem[] = [];
+        result.ul.li.forEach((item: any) => {
+            const data = {
+                name: item.a.h3.span[0]._,
+                version: item.a.h3.span[1]._,
+                updateTime: item.a.h3.span[2].time.$.datetime,
+                describe: item.a.p._,
+            };
+            list.push({ alwaysShow: true, label: data.name, description: `${data.version}`, detail: data.describe });
+        });
+
+        let totalPages = 1;
+
+        if (paginationXml) {
+            const pagination = await xml2js.parseStringPromise(paginationXml, {
+                explicitArray: false,
+            });
+            totalPages = Number(pagination.div.a[pagination.div.a.length - 2]._) || 1;
+            if (totalPages < page) {
+                totalPages = page;
+            }
+        }
+
+        return {
+            list,
+            totalPages,
+        };
     }
 }
