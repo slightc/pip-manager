@@ -42,6 +42,10 @@ must be installed Python Extension (ms-python.python)
 
 ## Release Notes
 
+### 1.0.13
+
+Fix localize error
+
 ### 1.0.12
 
 Add search package from PyPI
