@@ -13,7 +13,7 @@ export class I18n {
         }
 
         this.messages = Object.assign(zhCn);
-        this.currentMessage = this.messages[this.locale];
+        this.currentMessage = this.messages[this.locale] || {};
     }
 
     localize(key: string, defaultValue: string, ...args: string[]): string {
