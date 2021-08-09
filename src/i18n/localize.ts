@@ -13,11 +13,18 @@ export class I18n {
         }
 
         this.messages = Object.assign(zhCn);
+        this.updateLocale(this.locale);
+    }
+
+    updateLocale(locale: string) {
+        if(locale){
+            this.locale = locale;
+        }
         this.currentMessage = this.messages[this.locale] || {};
     }
 
     localize(key: string, defaultValue: string, ...args: string[]): string {
-        const message = this.currentMessage[key] || defaultValue;
+        const message = (key && this.currentMessage?.[key]) || defaultValue;
         return message.replace(/\%\d+\%/g, (match: string) => {
             const index = match.replace(/[\%]/g, '');
             return args[Number(index)] || '';

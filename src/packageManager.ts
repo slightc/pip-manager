@@ -23,6 +23,10 @@ enum Category {
 
 const defaultCategory = encodeURI(Category.stable);
 
+export const necessaryPackage = [
+    'pip', 'setuptools', 'wheel'
+];
+
 export class PackageManager {
     constructor(private _pythonPath: string, private readonly output: vscode.OutputChannel) { }
 
@@ -100,7 +104,7 @@ export class PackageManager {
         if (typeof pack === 'string') {
             name = pack;
         } else {
-            name = `${pack.name}${pack.version ? `@${pack.version}` : ''}`;
+            name = `${pack.name}${pack.version ? `==${pack.version}` : ''}`;
         }
 
         if (!name) {
@@ -135,6 +139,9 @@ export class PackageManager {
 
         if (!name) {
             throw new Error('Invalid Name');
+        }
+        if(necessaryPackage.includes(name.split('==')[0])) {
+            return;
         }
 
         await this.pip(['uninstall', name, '-y']);
