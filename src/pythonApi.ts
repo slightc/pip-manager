@@ -1,4 +1,6 @@
-import { Event, Uri } from "vscode";
+import * as vscode from "vscode";
+import{ Event, Uri } from "vscode";
+import { i18n } from './i18n/localize';
 
 export interface PythonExtensionApi {
     /**
@@ -75,4 +77,36 @@ export interface PythonExtensionApi {
          */
         registerRemoteServerProvider(serverProvider: any): void;
     };
+}
+
+export async function pythonExtensionReady() {
+	const pythonExt = vscode.extensions.getExtension<PythonExtensionApi>('ms-python.python');
+
+	if (!pythonExt) {
+		vscode.window.showErrorMessage(i18n.localize('pip-manager.tip.installPython', 'Please install python extension'));
+		return Promise.reject();
+	}
+
+	if (!pythonExt.isActive) {
+		await pythonExt.exports.ready;
+	}
+
+	function getPythonPath(){
+		if(!pythonExt){
+			return '';
+		}
+		const executionDetails = pythonExt.exports.settings.getExecutionDetails();
+		return executionDetails?.execCommand?.[0] || '';
+	}
+
+	const pythonPath = getPythonPath();
+
+	const onPythonPathChange = (callback: (pythonPath: string) => any) => {
+		return pythonExt.exports.settings.onDidChangeExecutionDetails(() => {
+			const pythonPath = getPythonPath();
+			return callback(pythonPath);
+		});
+	};
+
+	return [pythonPath, onPythonPathChange, pythonExt] as [typeof pythonPath, typeof onPythonPathChange, typeof pythonExt];
 }
