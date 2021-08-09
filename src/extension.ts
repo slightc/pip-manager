@@ -7,6 +7,57 @@ import { PackageManager } from './packageManager';
 import { i18n } from './i18n/localize';
 import path = require('path');
 
+class CommandTool {
+	private map = new Map<string, vscode.Disposable>();
+	constructor(private _context: vscode.ExtensionContext) { }
+
+	public registerEmptyCommand(name: string) {
+		this.map.set(name, vscode.commands.registerCommand(name, () => { }));
+	}
+	public disposeEmptyCommand(name: string) {
+		const command = this.map.get(name);
+		if (command) {
+			command.dispose();
+		}
+	}
+	public registerCommand(name: string, callback: (...args: any[]) => any, thisArg?: any) {
+		this.disposeEmptyCommand(name);
+		this._context.subscriptions.push(vscode.commands.registerCommand(name, callback, thisArg));
+	}
+}
+
+async function pythonExtensionReady() {
+	const pythonExt = vscode.extensions.getExtension<PythonExtensionApi>('ms-python.python');
+
+	if (!pythonExt) {
+		vscode.window.showErrorMessage(i18n.localize('pip-manager.tip.installPython', 'Please install python extension'));
+		return Promise.reject();
+	}
+
+	if (!pythonExt.isActive) {
+		await pythonExt.exports.ready;
+	}
+
+	function getPythonPath(){
+		if(!pythonExt){
+			return '';
+		}
+		const executionDetails = pythonExt.exports.settings.getExecutionDetails();
+		return executionDetails?.execCommand?.[0] || '';
+	}
+
+	const pythonPath = getPythonPath();
+
+	const onPythonPathChange = (callback: (pythonPath: string) => any) => {
+		return pythonExt.exports.settings.onDidChangeExecutionDetails(() => {
+			const pythonPath = getPythonPath();
+			return callback(pythonPath);
+		});
+	};
+
+	return [pythonPath, onPythonPathChange] as [typeof pythonPath, typeof onPythonPathChange];
+}
+
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
@@ -14,43 +65,31 @@ export async function activate(context: vscode.ExtensionContext) {
 	
 	// Use the console to output diagnostic information (console.log) and errors (console.error)
 	// This line of code will only be executed once when your extension is activated
-	const pythonExt = vscode.extensions.getExtension<PythonExtensionApi>('ms-python.python');
+	const commandTool = new CommandTool(context);
+	commandTool.registerEmptyCommand('pip-manager.addPackage');
+	commandTool.registerEmptyCommand('pip-manager.refreshPackage');
+	commandTool.registerEmptyCommand('pip-manager.searchPackage');
 
-	if(!pythonExt){
-		vscode.window.showErrorMessage(i18n.localize('pip-manager.tip.installPython', 'Please install python extension'));
-		return;
-	}
 
-	if(!pythonExt.isActive){
-		await pythonExt.exports.ready;
-	}
-
-	function getPythonPath(extension: vscode.Extension<PythonExtensionApi>): string {
-		const executionDetails = extension.exports.settings.getExecutionDetails();
-		return executionDetails?.execCommand?.[0] || '';
-	}
+	const [pythonPath, onPythonPathChange] = await pythonExtensionReady();
 
 	const outputChannel = vscode.window.createOutputChannel('Pip Manager');
-
 	outputChannel.clear();
 	outputChannel.appendLine('Pip Manager Start');
-
-	const pythonPath = getPythonPath(pythonExt);
 
 	const pip = new PackageManager(pythonPath, outputChannel);
 	const dataProvider = new DataProvider(pip);
 
-	context.subscriptions.push(pythonExt.exports.settings.onDidChangeExecutionDetails((e) => {
-		const pythonPath = getPythonPath(pythonExt);
+	context.subscriptions.push(onPythonPathChange((pythonPath) => {
 		pip.updatePythonPath(pythonPath);
 		dataProvider.refresh();
 	}));
 
 	context.subscriptions.push(vscode.window.registerTreeDataProvider('pip-manager-installed', dataProvider));
 
-	context.subscriptions.push(vscode.commands.registerCommand('pip-manager.refreshPackage', () => {
+	commandTool.registerCommand('pip-manager.refreshPackage', () => {
 		dataProvider.refresh();
-	}));
+	});
 
 	async function addPackage(name?: string){
 		if(name){
@@ -65,10 +104,10 @@ export async function activate(context: vscode.ExtensionContext) {
 			});
 		}
 	}
-	context.subscriptions.push(vscode.commands.registerCommand('pip-manager.addPackage', async () => {
+	commandTool.registerCommand('pip-manager.addPackage', async () => {
 		const value = await vscode.window.showInputBox({ title: i18n.localize('pip-manager.input.addPackage', 'input install package name') });
 		await addPackage(value);
-	}));
+	});
 
 	function checkRemovePackage(name: string) {
 		const necessaryPackage = [
@@ -81,7 +120,7 @@ export async function activate(context: vscode.ExtensionContext) {
 		return true;
 	}
 
-	context.subscriptions.push(vscode.commands.registerCommand('pip-manager.removePackage', async (e?: DataItem) => {
+	commandTool.registerCommand('pip-manager.removePackage', async (e?: DataItem) => {
 		let value = '';
 		if(!e){
 			value = await vscode.window.showInputBox({ title: i18n.localize('pip-manager.input.removePackage', 'input remove package name') }) || '';
@@ -99,8 +138,8 @@ export async function activate(context: vscode.ExtensionContext) {
 			await pip.removePackage(value);
 			dataProvider.refresh();
 		});
-	}));
-	context.subscriptions.push(vscode.commands.registerCommand('pip-manager.packageDescription', async (e?: DataItem) => {
+	});
+	commandTool.registerCommand('pip-manager.packageDescription', async (e?: DataItem) => {
 		let value = '';
 		if (!e) {
 			value = await vscode.window.showInputBox({ title: i18n.localize('pip-manager.input.packageDescription', 'input find package name') }) || '';
@@ -111,9 +150,9 @@ export async function activate(context: vscode.ExtensionContext) {
 			return;
 		}
 		vscode.env.openExternal(vscode.Uri.parse(`https://pypi.org/project/${value}/`));
-	}));
+	});
 
-	context.subscriptions.push(vscode.commands.registerCommand('pip-manager.copyPackageName', async (e?: DataItem) => {
+	commandTool.registerCommand('pip-manager.copyPackageName', async (e?: DataItem) => {
 		if (!e) {
 			return;
 		}
@@ -122,9 +161,9 @@ export async function activate(context: vscode.ExtensionContext) {
 			return;
 		}
 		vscode.env.clipboard.writeText(value);
-	}));
+	});
 
-	context.subscriptions.push(vscode.commands.registerCommand('pip-manager.installRequirements', async (e?: vscode.Uri) => {
+	commandTool.registerCommand('pip-manager.installRequirements', async (e?: vscode.Uri) => {
 		if (!e) {
 			return;
 		}
@@ -141,9 +180,9 @@ export async function activate(context: vscode.ExtensionContext) {
 			await pip.addPackageFromFile(filePath, cancelToken);
 			dataProvider.refresh();
 		});
-	}));
+	});
 
-	context.subscriptions.push(vscode.commands.registerCommand('pip-manager.searchPackage', async () => {
+	commandTool.registerCommand('pip-manager.searchPackage', async () => {
 		const qPick = vscode.window.createQuickPick();
 
 		let rBusy = 0;
@@ -245,8 +284,8 @@ export async function activate(context: vscode.ExtensionContext) {
 		});
 
 		updateItemList('', 1);
-	}));
-}
+	});
+
 
 // this method is called when your extension is deactivated
 export function deactivate() {}
