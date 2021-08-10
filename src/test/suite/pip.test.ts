@@ -5,6 +5,7 @@ import * as assert from 'assert';
 import * as vscode from 'vscode';
 import { PackageManager } from '../../packageManager';
 import { ExtensionAPI } from '../../extension';
+import axios from 'axios';
 
 suite('Extension Pip Test Suite', function () {
 	this.timeout(10000);
@@ -68,8 +69,21 @@ suite('Extension Pip Test Suite', function () {
 	})
 	test('pip api: search', (done) => {
 		(async () => {
-			const searchResult  = await pip.searchFromPyPi('pip');
+			const searchResult = await pip.searchFromPyPi('pip');
 			assert.strictEqual(true, searchResult?.list.length > 0);
+			const cancelToken = new vscode.CancellationTokenSource();
+			try {
+				setTimeout(() => {
+					cancelToken.cancel();
+				}, 50);
+				await pip.searchFromPyPi('pip', 1, cancelToken.token);
+				throw new Error("should be cancel");
+			} catch (err) {
+				if(!axios.isCancel(err)){
+					throw err;
+				}
+			}
+			cancelToken.dispose();
 		})().then(done).catch(done);
 	})
 
