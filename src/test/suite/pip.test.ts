@@ -30,8 +30,6 @@ suite('Extension Pip Test Suite', function () {
 		})().then(done).catch(done);
 	})
 
-	this.timeout(2000);
-
 	test('have pip api', () => {
 		assert.strictEqual(true, !!pip);
 	})
@@ -39,6 +37,12 @@ suite('Extension Pip Test Suite', function () {
 		(async () => {
 			const packageList  = await pip.getPackageList();
 			assert.strictEqual(true, JSON.stringify(packageList).includes('pip'));
+		})().then(done).catch(done);
+	})
+	test('pip api: search', (done) => {
+		(async () => {
+			const searchResult  = await pip.searchFromPyPi('pip');
+			assert.strictEqual(true, searchResult?.list.length > 0);
 		})().then(done).catch(done);
 	})
 

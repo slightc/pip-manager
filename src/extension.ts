@@ -5,6 +5,7 @@ import { DataItem, DataProvider } from './dataProvider';
 import { pythonExtensionReady } from './pythonApi';
 import { PackageManager, necessaryPackage } from './packageManager';
 import { i18n } from './i18n/localize';
+import axios from 'axios';
 import * as path from 'path';
 
 export interface ExtensionAPI {
@@ -135,7 +136,7 @@ export async function activate(context: vscode.ExtensionContext) {
 		if (!value) {
 			return;
 		}
-		vscode.env.clipboard.writeText(value);
+		await vscode.env.clipboard.writeText(value);
 	});
 
 	commandTool.registerCommand('pip-manager.installRequirements', async (e?: vscode.Uri) => {
@@ -162,6 +163,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
 		let rBusy = 0;
 		let timer: NodeJS.Timeout;
+		let lastCancelToken: vscode.CancellationTokenSource | undefined;
 
 		qPick.busy = true;
 		qPick.show();
@@ -201,8 +203,14 @@ export async function activate(context: vscode.ExtensionContext) {
 		}
 
 		async function updateItemList(value: string, page: number, clear = true) {
+			if(lastCancelToken){
+				lastCancelToken.cancel();
+			}
+			const cancelToken = new vscode.CancellationTokenSource();
+			lastCancelToken = cancelToken;
 			rBusy++;
 			qPick.busy = !!rBusy;
+
 			try {
 				if (value) {
 					qPick.title = i18n.localize('pip-manager.pick.search.resultTitle', 'search for %0%', `${value}`);;
@@ -214,17 +222,20 @@ export async function activate(context: vscode.ExtensionContext) {
 				}else{
 					setStep(page);
 				}
-				const data = await pip.searchFromPyPi(value, page);
+				const data = await pip.searchFromPyPi(value, page, cancelToken.token);
 				qPick.items = data.list;
 				setStep(page,data.totalPages);
 				qPick.step = page;
 				qPick.totalSteps = data.totalPages;
 			} catch (err) {
-				qPick.title = i18n.localize('pip-manager.pick.search.noResultTitle', 'no search result');
-				qPick.items = [];
-				qPick.step = 0;
-				qPick.totalSteps = 0;
+				if(!axios.isCancel(err)) {
+					qPick.title = i18n.localize('pip-manager.pick.search.noResultTitle', 'no search result');
+					qPick.items = [];
+					qPick.step = 0;
+					qPick.totalSteps = 0;
+				}
 			}
+			cancelToken.dispose();
 			rBusy--;
 			qPick.busy = !!rBusy;
 		}
@@ -244,18 +255,17 @@ export async function activate(context: vscode.ExtensionContext) {
 		});
 
 		qPick.onDidTriggerButton((e) => {
-			if (!qPick.busy) {
-				if (e === btnTable.left) {
-					updateItemList(qPick.value, (qPick.step || 0) - 1, false);
-				}
-				if (e === btnTable.right) {
-					updateItemList(qPick.value, (qPick.step || 0) + 1, false);
-				}
+			if (e === btnTable.left) {
+				updateItemList(qPick.value, (qPick.step || 0) - 1, false);
+			}
+			if (e === btnTable.right) {
+				updateItemList(qPick.value, (qPick.step || 0) + 1, false);
 			}
 		});
 
 		qPick.onDidHide(() => {
 			qPick.dispose();
+			lastCancelToken?.dispose();
 		});
 
 		updateItemList('', 1);

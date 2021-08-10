@@ -4,11 +4,14 @@ import * as os from 'os';
 import * as vscode from 'vscode';
 import axios from 'axios';
 import * as xml2js from 'xml2js';
+import * as utils from './utils';
 
 interface PackageInfo {
     name: string;
-    version: string;
+    version?: string;
 }
+
+type PackagePickItem = vscode.QuickPickItem & Required<PackageInfo>;
 
 enum Source {
     tsinghua = 'https://pypi.tuna.tsinghua.edu.cn/simple',
@@ -94,12 +97,12 @@ export class PackageManager {
         });
     }
 
-    public async getPackageList(): Promise<PackageInfo[]> {
+    public async getPackageList(): Promise<Required<PackageInfo>[]> {
         const packages = await this.pip(['list', '--format', 'json']);
         return JSON.parse(packages);
     }
 
-    public async addPackage(pack: string | { name: string; version?: string }, cancelToken?: vscode.CancellationToken, source = Source.tsinghua) {
+    public async addPackage(pack: string | PackageInfo, cancelToken?: vscode.CancellationToken, source = Source.tsinghua) {
         let name: string = '';
         if (typeof pack === 'string') {
             name = pack;
@@ -129,7 +132,7 @@ export class PackageManager {
         await this.pip(args, cancelToken);
     }
 
-    public async removePackage(pack: string | { name: string }) {
+    public async removePackage(pack: string | PackageInfo) {
         let name: string = '';
         if (typeof pack === 'string') {
             name = pack;
@@ -147,9 +150,11 @@ export class PackageManager {
         await this.pip(['uninstall', name, '-y']);
     }
 
-    public async searchFromPyPi(keyword: string, page = 1) {
+    public async searchFromPyPi(keyword: string, page = 1, cancelToken?: vscode.CancellationToken) {
+        const axiosCancelToken = utils.createAxiosCancelToken(cancelToken);
         const resp = await axios({
             method: 'GET',
+            cancelToken: axiosCancelToken.token,
             url: `https://pypi.org/search/?q=${keyword}&page=${page}${keyword ? '' : `&c=${defaultCategory}`
                 }`,
         });
@@ -166,7 +171,7 @@ export class PackageManager {
             explicitArray: false,
         });
 
-        const list: vscode.QuickPickItem[] = [];
+        const list: PackagePickItem[] = [];
         result.ul.li.forEach((item: any) => {
             const data = {
                 name: item.a.h3.span[0]._,
@@ -174,7 +179,14 @@ export class PackageManager {
                 updateTime: item.a.h3.span[2].time.$.datetime,
                 describe: item.a.p._,
             };
-            list.push({ alwaysShow: true, label: data.name, description: `${data.version}`, detail: data.describe });
+            list.push({
+                name: data.name,
+                version: data.version,
+                alwaysShow: true,
+                label: data.name,
+                description: `${data.version}`,
+                detail: data.describe
+            });
         });
 
         let totalPages = 1;

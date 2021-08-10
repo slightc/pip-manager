@@ -28,8 +28,6 @@ suite('Extension Test Suite', function () {
 		})().then(done).catch(done);
 	})
 
-	this.timeout(2000);
-
 	test('refreshPackage', (done) => {
 		(async () => {
 			await vscode.commands.executeCommand('pip-manager.refreshPackage');
@@ -51,6 +49,12 @@ suite('Extension Test Suite', function () {
 	test('addPackage again', (done) => {
 		(async () => {
 			await vscode.commands.executeCommand('pip-manager.addPackage', 'pyserial');
+		})().then(done).catch(done);
+	})
+	test('copyPackageName', (done) => {
+		(async () => {
+			await vscode.commands.executeCommand('pip-manager.copyPackageName', { label: 'pyserial' });
+			assert.strictEqual('pyserial', await vscode.env.clipboard.readText());
 		})().then(done).catch(done);
 	})
 
