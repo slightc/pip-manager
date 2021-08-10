@@ -1,7 +1,7 @@
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
-import { DataItem, DataProvider } from './dataProvider';
+import { PackageDataItem, PackageDataProvider } from './packageDataProvider';
 import { pythonExtensionReady } from './pythonApi';
 import { PackageManager, necessaryPackage } from './packageManager';
 import { i18n } from './i18n/localize';
@@ -51,17 +51,17 @@ export async function activate(context: vscode.ExtensionContext) {
 	outputChannel.appendLine('Pip Manager Start');
 
 	const pip = new PackageManager(pythonPath, outputChannel);
-	const dataProvider = new DataProvider(pip);
+	const packageDataProvider = new PackageDataProvider(pip);
 
 	context.subscriptions.push(onPythonPathChange((pythonPath) => {
 		pip.updatePythonPath(pythonPath);
-		dataProvider.refresh();
+		packageDataProvider.refresh();
 	}));
 
-	context.subscriptions.push(vscode.window.registerTreeDataProvider('pip-manager-installed', dataProvider));
+	context.subscriptions.push(vscode.window.registerTreeDataProvider('pip-manager-installed', packageDataProvider));
 
 	commandTool.registerCommand('pip-manager.refreshPackage', () => {
-		dataProvider.refresh();
+		packageDataProvider.refresh();
 	});
 
 	async function addPackage(name?: string){
@@ -73,7 +73,7 @@ export async function activate(context: vscode.ExtensionContext) {
 				cancellable: true,
 			}, async (progress, cancelToken) => {
 				await pip.addPackage(name, cancelToken);
-				dataProvider.refresh();
+				packageDataProvider.refresh();
 			});
 		}
 	}
@@ -95,7 +95,7 @@ export async function activate(context: vscode.ExtensionContext) {
 		return true;
 	}
 
-	commandTool.registerCommand('pip-manager.removePackage', async (e?: DataItem) => {
+	commandTool.registerCommand('pip-manager.removePackage', async (e?: PackageDataItem) => {
 		let value = '';
 		if(!e){
 			value = await vscode.window.showInputBox({ title: i18n.localize('pip-manager.input.removePackage', 'input remove package name') }) || '';
@@ -111,11 +111,11 @@ export async function activate(context: vscode.ExtensionContext) {
 			title: i18n.localize('pip-manager.tip.removePackage', 'remove package %0%', `${value}`),
 		}, async () => {
 			await pip.removePackage(value);
-			dataProvider.refresh();
+			packageDataProvider.refresh();
 		});
 		return true;
 	});
-	commandTool.registerCommand('pip-manager.packageDescription', async (e?: DataItem) => {
+	commandTool.registerCommand('pip-manager.packageDescription', async (e?: PackageDataItem) => {
 		let value = '';
 		if (!e) {
 			value = await vscode.window.showInputBox({ title: i18n.localize('pip-manager.input.packageDescription', 'input find package name') }) || '';
@@ -128,7 +128,7 @@ export async function activate(context: vscode.ExtensionContext) {
 		vscode.env.openExternal(vscode.Uri.parse(`https://pypi.org/project/${value}/`));
 	});
 
-	commandTool.registerCommand('pip-manager.copyPackageName', async (e?: DataItem) => {
+	commandTool.registerCommand('pip-manager.copyPackageName', async (e?: PackageDataItem) => {
 		if (!e) {
 			return;
 		}
@@ -154,7 +154,7 @@ export async function activate(context: vscode.ExtensionContext) {
 			cancellable: true,
 		}, async (progress, cancelToken) => {
 			await pip.addPackageFromFile(filePath, cancelToken);
-			dataProvider.refresh();
+			packageDataProvider.refresh();
 		});
 	});
 
