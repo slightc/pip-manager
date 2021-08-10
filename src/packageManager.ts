@@ -97,22 +97,39 @@ export class PackageManager {
         });
     }
 
+    private createPackageInfo(pack: string | PackageInfo): PackageInfo | null {
+        let out: PackageInfo;
+        if (typeof pack === 'string') {
+            const [name, version] = pack.split('==');
+            out = { name, version: version || undefined }
+        }else{
+            out = {...pack};
+        }
+        if(!out.name){
+            return null;
+        }
+        out.toString = ()=>{
+            return `${out.name}${out.version ? `==${out.version}` : ''}`;
+        }
+        return out;
+    }
+
+    public _test_createPackageInfo = this.createPackageInfo;
+
     public async getPackageList(): Promise<Required<PackageInfo>[]> {
         const packages = await this.pip(['list', '--format', 'json']);
         return JSON.parse(packages);
     }
 
     public async addPackage(pack: string | PackageInfo, cancelToken?: vscode.CancellationToken, source = Source.tsinghua) {
-        let name: string = '';
-        if (typeof pack === 'string') {
-            name = pack;
-        } else {
-            name = `${pack.name}${pack.version ? `==${pack.version}` : ''}`;
-        }
+ 
+        const info = this.createPackageInfo(pack);
 
-        if (!name) {
+        if (!info) {
             throw new Error('Invalid Name');
         }
+
+        const name = info.toString();
 
         const args = ['install', name];
         if (source) {
@@ -133,17 +150,13 @@ export class PackageManager {
     }
 
     public async removePackage(pack: string | PackageInfo) {
-        let name: string = '';
-        if (typeof pack === 'string') {
-            name = pack;
-        } else {
-            name = `${pack.name}`;
-        }
+        const info = this.createPackageInfo(pack);
 
-        if (!name) {
+        if (!info) {
             throw new Error('Invalid Name');
         }
-        if(necessaryPackage.includes(name.split('==')[0])) {
+        const name = info.name;
+        if (necessaryPackage.includes(name)) {
             return;
         }
 
