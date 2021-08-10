@@ -19,6 +19,11 @@ class CommandTool {
 	public registerEmptyCommand(name: string) {
 		this.map.set(name, vscode.commands.registerCommand(name, () => { }));
 	}
+	public registerEmptyCommands(names: string[]) {
+		names.forEach((name) => {
+			this.registerEmptyCommand(name);
+		})
+	}
 	public disposeEmptyCommand(name: string) {
 		const command = this.map.get(name);
 		if (command) {
@@ -39,10 +44,11 @@ export async function activate(context: vscode.ExtensionContext) {
 	// Use the console to output diagnostic information (console.log) and errors (console.error)
 	// This line of code will only be executed once when your extension is activated
 	const commandTool = new CommandTool(context);
-	commandTool.registerEmptyCommand('pip-manager.addPackage');
-	commandTool.registerEmptyCommand('pip-manager.refreshPackage');
-	commandTool.registerEmptyCommand('pip-manager.searchPackage');
-
+	commandTool.registerEmptyCommands([
+		'pip-manager.addPackage',
+		'pip-manager.refreshPackage',
+		'pip-manager.searchPackage',
+	])
 
 	const [pythonPath, onPythonPathChange] = await pythonExtensionReady();
 
