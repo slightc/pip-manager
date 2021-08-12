@@ -3,10 +3,13 @@
 import * as vscode from 'vscode';
 import { PackageDataItem, PackageDataProvider } from './packageDataProvider';
 import { pythonExtensionReady } from './pythonApi';
-import { PackageManager, necessaryPackage } from './packageManager';
+import { PackageManager, necessaryPackage, IPackageManager } from './packageManager';
 import { i18n } from './i18n/localize';
 import axios from 'axios';
 import * as path from 'path';
+import { ServiceCollection } from './instantiation/common/serviceCollection';
+import { InstantiationService } from './instantiation/common/instantiationService';
+import { IOutputChannel, IExtensionContext } from './types';
 
 export interface ExtensionAPI {
 	pip: PackageManager
@@ -14,7 +17,7 @@ export interface ExtensionAPI {
 
 class CommandTool {
 	private map = new Map<string, vscode.Disposable>();
-	constructor(private _context: vscode.ExtensionContext) { }
+	constructor(@IExtensionContext private _context: IExtensionContext) { }
 
 	public registerEmptyCommand(name: string) {
 		this.map.set(name, vscode.commands.registerCommand(name, () => { }));
@@ -36,14 +39,20 @@ class CommandTool {
 	}
 }
 
-
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 export async function activate(context: vscode.ExtensionContext) {
 	
-	// Use the console to output diagnostic information (console.log) and errors (console.error)
-	// This line of code will only be executed once when your extension is activated
-	const commandTool = new CommandTool(context);
+	// start register services
+	const services = new ServiceCollection()
+	const instantiationService = new InstantiationService(services);
+	const outputChannel: IOutputChannel = vscode.window.createOutputChannel('Pip Manager');
+	outputChannel.clear();
+
+	services.set(IExtensionContext, context);
+	services.set(IOutputChannel, outputChannel);
+
+	const commandTool = instantiationService.createInstance(CommandTool);
 	commandTool.registerEmptyCommands([
 		'pip-manager.addPackage',
 		'pip-manager.refreshPackage',
@@ -51,24 +60,14 @@ export async function activate(context: vscode.ExtensionContext) {
 	])
 
 	const [pythonPath, onPythonPathChange] = await pythonExtensionReady();
-
-	const outputChannel = vscode.window.createOutputChannel('Pip Manager');
-	outputChannel.clear();
 	outputChannel.appendLine('Pip Manager Start');
 
-	const pip = new PackageManager(pythonPath, outputChannel);
-	const packageDataProvider = new PackageDataProvider(pip);
+	const pip = instantiationService.createInstance(PackageManager, pythonPath);
+	services.set(IPackageManager, pip);
 
-	context.subscriptions.push(onPythonPathChange((pythonPath) => {
-		pip.updatePythonPath(pythonPath);
-		packageDataProvider.refresh();
-	}));
+	const packageDataProvider = instantiationService.createInstance(PackageDataProvider);
 
-	context.subscriptions.push(vscode.window.registerTreeDataProvider('pip-manager-installed', packageDataProvider));
-
-	commandTool.registerCommand('pip-manager.refreshPackage', () => {
-		packageDataProvider.refresh();
-	});
+	// after services registered
 
 	async function addPackage(name?: string){
 		if(name){
@@ -83,6 +82,28 @@ export async function activate(context: vscode.ExtensionContext) {
 			});
 		}
 	}
+
+	function checkRemovePackage(name: string) {
+		if (necessaryPackage.includes(name)) {
+			vscode.window.showWarningMessage(i18n.localize('pip-manager.tip.disableRemove', 'package %0% cannot remove',`${necessaryPackage}`));
+			return false;
+		}
+		return true;
+	}
+
+	// ======================
+
+	context.subscriptions.push(onPythonPathChange((pythonPath) => {
+		pip.updatePythonPath(pythonPath);
+		packageDataProvider.refresh();
+	}));
+
+	context.subscriptions.push(vscode.window.registerTreeDataProvider('pip-manager-installed', packageDataProvider));
+
+	commandTool.registerCommand('pip-manager.refreshPackage', () => {
+		packageDataProvider.refresh();
+	});
+
 	commandTool.registerCommand('pip-manager.addPackage', async (name?: string) => {
 		let value = '';
 		if(name){
@@ -92,14 +113,6 @@ export async function activate(context: vscode.ExtensionContext) {
 		}
 		await addPackage(value);
 	});
-
-	function checkRemovePackage(name: string) {
-		if (necessaryPackage.includes(name)) {
-			vscode.window.showWarningMessage(i18n.localize('pip-manager.tip.disableRemove', 'package %0% cannot remove',`${necessaryPackage}`));
-			return false;
-		}
-		return true;
-	}
 
 	commandTool.registerCommand('pip-manager.removePackage', async (e?: PackageDataItem) => {
 		let value = '';

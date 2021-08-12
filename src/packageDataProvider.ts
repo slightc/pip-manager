@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { PackageManager } from './packageManager';
+import { IPackageManager, PackageManager } from './packageManager';
 
 export class PackageDataItem extends vscode.TreeItem {
     public name: string;
@@ -17,7 +17,10 @@ export class PackageDataItem extends vscode.TreeItem {
 }
 
 export class PackageDataProvider implements vscode.TreeDataProvider<PackageDataItem> {
-    constructor(private readonly pip: PackageManager) { }
+    constructor(
+        @IPackageManager private readonly pip: PackageManager
+    ) { }
+
     getTreeItem(element: PackageDataItem): vscode.TreeItem {
         return element;
     }

@@ -5,6 +5,8 @@ import * as vscode from 'vscode';
 import axios from 'axios';
 import * as xml2js from 'xml2js';
 import * as utils from './utils';
+import { createDecorator } from './instantiation/common/instantiation';
+import { IOutputChannel } from './types';
 
 interface PackageInfo {
     name: string;
@@ -30,8 +32,20 @@ export const necessaryPackage = [
     'pip', 'setuptools', 'wheel'
 ];
 
-export class PackageManager {
-    constructor(private _pythonPath: string, private readonly output: vscode.OutputChannel) { }
+export interface IPackageManager {
+    getPackageList(): Promise<Required<PackageInfo>[]>;
+    addPackage(pack: string | PackageInfo, cancelToken?: vscode.CancellationToken, source?: Source): Promise<any>;
+    removePackage(pack: string | PackageInfo): Promise<any>;
+    searchFromPyPi(keyword: string, page?: number, cancelToken?: vscode.CancellationToken): Promise<{ list: PackagePickItem[], totalPages: number }>;
+}
+
+export const IPackageManager = createDecorator<IPackageManager>('packageManager');
+
+export class PackageManager implements IPackageManager {
+    constructor(
+        private _pythonPath: string,
+        @IOutputChannel private readonly output: vscode.OutputChannel
+    ) { }
 
     updatePythonPath(path: string) {
         this._pythonPath = path;
