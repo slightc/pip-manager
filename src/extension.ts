@@ -162,14 +162,14 @@ export async function activate(context: vscode.ExtensionContext) {
 		if (!e) {
 			return;
 		}
-		const filePath = e.path;
+		const filePath = e.fsPath;
 		if (!filePath) {
 			return;
 		}
 		outputChannel.clear();
 		vscode.window.withProgress({
 			location: vscode.ProgressLocation.Notification,
-			title: i18n.localize('pip-manager.tip.addPackageFromFile', 'installing package in %0%', path.basename(e.path)),
+			title: i18n.localize('pip-manager.tip.addPackageFromFile', 'installing package in %0%', path.basename(filePath)),
 			cancellable: true,
 		}, async (progress, cancelToken) => {
 			await pip.addPackageFromFile(filePath, cancelToken);
