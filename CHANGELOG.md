@@ -6,6 +6,11 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 ## [Unreleased]
 
+## [1.0.15] - 2021-10-08
+### Changed
+- Fix installRequirements error in windows.
+- Add update package.
+
 ## [1.0.13] - 2021-08-08
 ### Changed
 - Fix localize error, I'm sorry to everyone that no check the localize for other language, Now I'm fix it.

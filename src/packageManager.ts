@@ -37,6 +37,7 @@ export const necessaryPackage = [
 
 export interface IPackageManager {
     getPackageList(): Promise<PackageVersionInfo[]>;
+    getPackageListWithUpdate(): Promise<PackageVersionInfo[]>;
     addPackage(pack: string | PackageInfo, cancelToken?: vscode.CancellationToken, source?: Source): Promise<any>;
     updatePackage(pack: string | PackageInfo, cancelToken?: vscode.CancellationToken, source?: Source): Promise<any>;
     removePackage(pack: string | PackageInfo): Promise<any>;
@@ -137,7 +138,15 @@ export class PackageManager implements IPackageManager {
 
     public async getPackageList(): Promise<PackageVersionInfo[]> {
         const packages = await this.pip(['list', '--format', 'json']);
-        let packInfo = JSON.parse(packages);
+        return JSON.parse(packages);
+    }
+
+    public async getPackageUpdate(): Promise<PackageVersionInfo[]> {
+        const updates = await this.pip(['list', '--outdated', '--format', 'json']);
+        return JSON.parse(updates);
+    }
+    public async getPackageListWithUpdate(): Promise<PackageVersionInfo[]> {
+        let packInfo = await this.getPackageList();
         try {
             const updateInfo = await this.getPackageUpdate();
             const latestVersionMap: Record<string, string>= {};
@@ -160,11 +169,6 @@ export class PackageManager implements IPackageManager {
             // ignore error
         }
         return packInfo;
-    }
-
-    public async getPackageUpdate(): Promise<Required<PackageInfo>[]> {
-        const updates = await this.pip(['list', '--outdated', '--format', 'json']);
-        return JSON.parse(updates);
     }
 
     private async installPackage(iargs: string[], cancelToken?: vscode.CancellationToken, source = Source.tsinghua) {

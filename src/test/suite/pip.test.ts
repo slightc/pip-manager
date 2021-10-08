@@ -67,6 +67,12 @@ suite('Extension Pip Test Suite', function () {
 			assert.strictEqual(true, JSON.stringify(packageList).includes('pip'));
 		})().then(done).catch(done);
 	})
+	test('pip api: list with update', (done) => {
+		(async () => {
+			const packageList  = await pip.getPackageListWithUpdate();
+			assert.strictEqual(true, JSON.stringify(packageList).includes('pip'));
+		})().then(done).catch(done);
+	})
 	test('pip api: search', (done) => {
 		(async () => {
 			const searchResult = await pip.searchFromPyPi('pip');

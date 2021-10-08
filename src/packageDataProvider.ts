@@ -17,6 +17,8 @@ export class PackageDataItem extends vscode.TreeItem {
 }
 
 export class PackageDataProvider implements vscode.TreeDataProvider<PackageDataItem> {
+    private isFristUpdate: boolean = true;
+    private nextUpdateTimer: NodeJS.Timeout | undefined;
     constructor(
         @IPackageManager private readonly pip: PackageManager
     ) { }
@@ -25,11 +27,28 @@ export class PackageDataProvider implements vscode.TreeDataProvider<PackageDataI
         return element;
     }
 
+    requireNextUpdate() {
+        this.isFristUpdate = false;
+        if(this.nextUpdateTimer){
+            clearTimeout(this.nextUpdateTimer);
+        }
+        this.nextUpdateTimer = setTimeout(() => {
+            this._onDidChangeTreeData.fire();
+        }, 100);
+    }
+
     async getChildren(element?: PackageDataItem): Promise<PackageDataItem[]> {
         if(element){
             return Promise.resolve([]);
         }else{
-            const packageList = await this.pip.getPackageList();
+            let packageList: PackageVersionInfo[] = [];
+            if(this.isFristUpdate){
+                packageList = await this.pip.getPackageList();
+                this.requireNextUpdate();
+            }else{
+                this.isFristUpdate = true;
+                packageList = await this.pip.getPackageListWithUpdate();
+            }
             const datalist = packageList.map((info) => {
                 return new PackageDataItem(info);
             });
@@ -41,6 +60,7 @@ export class PackageDataProvider implements vscode.TreeDataProvider<PackageDataI
     readonly onDidChangeTreeData: vscode.Event<PackageDataItem | undefined | null | void> = this._onDidChangeTreeData.event;
 
     refresh(): void {
+        this.isFristUpdate = true;
         this._onDidChangeTreeData.fire();
     }
 }
