@@ -5,6 +5,7 @@ export default {
         "pip-manager.input.removePackage": "输入要移除的python包名",
         "pip-manager.input.packageDescription": "输入要查看的python包名",
         "pip-manager.tip.addPackage": "正在安装 %0%",
+        "pip-manager.tip.updatePackage": "正在升级 %0%",
         "pip-manager.tip.removePackage": "正在移除 %0%",
         "pip-manager.tip.installPython": "请先安装Python插件",
         "pip-manager.tip.addPackageFromFile": "正在安装 %0% 中的包",

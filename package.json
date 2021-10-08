@@ -2,7 +2,7 @@
 	"name": "pip-manager",
 	"displayName": "Pip Manager",
 	"description": "manage python package",
-	"version": "1.0.14",
+	"version": "1.0.15",
 	"publisher": "slightc",
 	"icon": "media/logo.png",
 	"license": "MIT",
@@ -36,6 +36,11 @@
 				"command": "pip-manager.addPackage",
 				"title": "%pip-manager.command.addPackage%",
 				"icon": "$(add)"
+			},
+			{
+				"command": "pip-manager.updatePackage",
+				"title": "%pip-manager.command.updatePackage%",
+				"icon": "$(arrow-up)"
 			},
 			{
 				"command": "pip-manager.searchPackage",
@@ -78,6 +83,15 @@
 				{
 					"command": "pip-manager.removePackage",
 					"when": "view == pip-manager-installed"
+				},
+				{
+					"command": "pip-manager.updatePackage",
+					"when": "view == pip-manager-installed && viewItem == canUpdate"
+				},
+				{
+					"command": "pip-manager.updatePackage",
+					"when": "view == pip-manager-installed && viewItem == canUpdate",
+					"group": "inline"
 				},
 				{
 					"command": "pip-manager.packageDescription",

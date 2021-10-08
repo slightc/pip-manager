@@ -1,18 +1,18 @@
 import * as vscode from 'vscode';
-import { IPackageManager, PackageManager } from './packageManager';
+import { IPackageManager, PackageManager, PackageVersionInfo } from './packageManager';
 
 export class PackageDataItem extends vscode.TreeItem {
     public name: string;
     constructor(
-        public readonly label: string,
-        public readonly version: string,
+        public readonly info: PackageVersionInfo,
         public readonly collapsibleState?: vscode.TreeItemCollapsibleState
     ) {
-        super(label, collapsibleState);
-        this.name = label;
-        this.description = version;
+        super(info.name, collapsibleState);
+        this.name = info.name;
+        this.description = info.latestVersion ? `${info.version} > ${info.latestVersion}` : info.version;
         this.iconPath = new vscode.ThemeIcon('circle-outline');
-        this.tooltip = `${label}@${version}`;
+        this.tooltip = `${this.name}@${this.description}`;
+        this.contextValue = info.latestVersion ? 'canUpdate' : '';
     }
 }
 
@@ -31,7 +31,7 @@ export class PackageDataProvider implements vscode.TreeDataProvider<PackageDataI
         }else{
             const packageList = await this.pip.getPackageList();
             const datalist = packageList.map((info) => {
-                return new PackageDataItem(info.name, info.version);
+                return new PackageDataItem(info);
             });
             return Promise.resolve(datalist);
         }

@@ -41,8 +41,8 @@ suite('Extension Test Suite', function () {
 	})
 	test('removePackage', (done) => {
 		(async () => {
-			assert.strictEqual(false, await vscode.commands.executeCommand('pip-manager.removePackage', { label: 'pip' }))
-			assert.strictEqual(true, await vscode.commands.executeCommand('pip-manager.removePackage', { label: 'pyserial' }))
+			assert.strictEqual(false, await vscode.commands.executeCommand('pip-manager.removePackage', { name: 'pip' }))
+			assert.strictEqual(true, await vscode.commands.executeCommand('pip-manager.removePackage', { name: 'pyserial' }))
 		})().then(done).catch(done);
 	})
 
@@ -53,7 +53,7 @@ suite('Extension Test Suite', function () {
 	})
 	test('copyPackageName', (done) => {
 		(async () => {
-			await vscode.commands.executeCommand('pip-manager.copyPackageName', { label: 'pyserial' });
+			await vscode.commands.executeCommand('pip-manager.copyPackageName', { name: 'pyserial' });
 			assert.strictEqual('pyserial', await vscode.env.clipboard.readText());
 		})().then(done).catch(done);
 	})

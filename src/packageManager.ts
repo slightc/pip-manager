@@ -11,9 +11,12 @@ import { IOutputChannel } from './types';
 interface PackageInfo {
     name: string;
     version?: string;
+    latestVersion?: string;
 }
 
-type PackagePickItem = vscode.QuickPickItem & Required<PackageInfo>;
+export type PackageVersionInfo = Omit<PackageInfo, 'version'> & Required<Pick<PackageInfo, 'version'>>;
+
+type PackagePickItem = vscode.QuickPickItem & PackageVersionInfo;
 
 enum Source {
     tsinghua = 'https://pypi.tuna.tsinghua.edu.cn/simple',
@@ -33,8 +36,9 @@ export const necessaryPackage = [
 ];
 
 export interface IPackageManager {
-    getPackageList(): Promise<Required<PackageInfo>[]>;
+    getPackageList(): Promise<PackageVersionInfo[]>;
     addPackage(pack: string | PackageInfo, cancelToken?: vscode.CancellationToken, source?: Source): Promise<any>;
+    updatePackage(pack: string | PackageInfo, cancelToken?: vscode.CancellationToken, source?: Source): Promise<any>;
     removePackage(pack: string | PackageInfo): Promise<any>;
     searchFromPyPi(keyword: string, page?: number, cancelToken?: vscode.CancellationToken): Promise<{ list: PackagePickItem[], totalPages: number }>;
 }
@@ -115,7 +119,7 @@ export class PackageManager implements IPackageManager {
         let out: PackageInfo;
         if (typeof pack === 'string') {
             const [name, version] = pack.split('==');
-            out = { name, version: version || undefined }
+            out = { name, version: version || undefined };
         }else{
             out = {...pack};
         }
@@ -124,43 +128,78 @@ export class PackageManager implements IPackageManager {
         }
         out.toString = ()=>{
             return `${out.name}${out.version ? `==${out.version}` : ''}`;
-        }
+        };
         return out;
     }
 
+    // eslint-disable-next-line @typescript-eslint/naming-convention
     public _test_createPackageInfo = this.createPackageInfo;
 
-    public async getPackageList(): Promise<Required<PackageInfo>[]> {
+    public async getPackageList(): Promise<PackageVersionInfo[]> {
         const packages = await this.pip(['list', '--format', 'json']);
-        return JSON.parse(packages);
+        let packInfo = JSON.parse(packages);
+        try {
+            const updateInfo = await this.getPackageUpdate();
+            const latestVersionMap: Record<string, string>= {};
+            if(updateInfo && updateInfo.length > 0) {
+                updateInfo.forEach((info: any) => {
+                    latestVersionMap[info.name] = info.latest_version;
+                });
+                packInfo = packInfo.map((info: any) => {
+                    const latestVersion = latestVersionMap[info.name];
+                    if(latestVersion){
+                        return {
+                            ...info,
+                            latestVersion,
+                        };
+                    }
+                    return info;
+                });
+            }
+        } catch (error) {
+            // ignore error
+        }
+        return packInfo;
+    }
+
+    public async getPackageUpdate(): Promise<Required<PackageInfo>[]> {
+        const updates = await this.pip(['list', '--outdated', '--format', 'json']);
+        return JSON.parse(updates);
+    }
+
+    private async installPackage(iargs: string[], cancelToken?: vscode.CancellationToken, source = Source.tsinghua) {
+        const args = ['install'].concat(iargs);
+  
+        if (source) {
+            args.push('-i', source);
+        }
+        await this.pip(args, cancelToken);
     }
 
     public async addPackage(pack: string | PackageInfo, cancelToken?: vscode.CancellationToken, source = Source.tsinghua) {
- 
         const info = this.createPackageInfo(pack);
-
         if (!info) {
             throw new Error('Invalid Name');
         }
 
         const name = info.toString();
-
-        const args = ['install', name];
-        if (source) {
-            args.push('-i', source);
+        await this.installPackage([name], cancelToken, source);
+    }
+    public async updatePackage(pack: string | PackageInfo, cancelToken?: vscode.CancellationToken, source = Source.tsinghua) {
+        const info = this.createPackageInfo(pack);
+        if (!info) {
+            throw new Error('Invalid Name');
         }
-        await this.pip(args, cancelToken);
+
+        const name = info.toString();
+        await this.installPackage(['--upgrade',name], cancelToken, source);
     }
     public async addPackageFromFile(filePath: string, cancelToken?: vscode.CancellationToken, source = Source.tsinghua) {
-        if (!path) {
+        if (!filePath) {
             throw new Error('Invalid Path');
         }
 
-        const args = ['install', '-r', filePath];
-        if (source) {
-            args.push('-i', source);
-        }
-        await this.pip(args, cancelToken);
+        await this.installPackage(['-r', filePath], cancelToken, source);
     }
 
     public async removePackage(pack: string | PackageInfo) {

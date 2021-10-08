@@ -5,6 +5,7 @@
     "pip-manager.command.addPackage": "Add Python Package",
     "pip-manager.command.refreshPackage": "Refresh Package List",
     "pip-manager.command.removePackage": "Remove",
+    "pip-manager.command.updatePackage": "Update",
     "pip-manager.command.packageDescription": "Open in PyPI",
     "pip-manager.command.copyPackageName": "Copy Name",
     "pip-manager.command.installRequirements": "Install python package from file",

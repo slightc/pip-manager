@@ -25,7 +25,7 @@ class CommandTool {
 	public registerEmptyCommands(names: string[]) {
 		names.forEach((name) => {
 			this.registerEmptyCommand(name);
-		})
+		});
 	}
 	public disposeEmptyCommand(name: string) {
 		const command = this.map.get(name);
@@ -57,7 +57,7 @@ export async function activate(context: vscode.ExtensionContext) {
 		'pip-manager.addPackage',
 		'pip-manager.refreshPackage',
 		'pip-manager.searchPackage',
-	])
+	]);
 
 	const [pythonPath, onPythonPathChange] = await pythonExtensionReady();
 	outputChannel.appendLine('Pip Manager Start');
@@ -78,6 +78,20 @@ export async function activate(context: vscode.ExtensionContext) {
 				cancellable: true,
 			}, async (progress, cancelToken) => {
 				await pip.addPackage(name, cancelToken);
+				packageDataProvider.refresh();
+			});
+		}
+	}
+
+	async function updatePackage(name?: string){
+		if(name){
+			outputChannel.clear();
+			await vscode.window.withProgress({
+				location: vscode.ProgressLocation.Notification,
+				title: i18n.localize('pip-manager.tip.updatePackage', 'update package %0%', `${name}`),
+				cancellable: true,
+			}, async (progress, cancelToken) => {
+				await pip.updatePackage(name, cancelToken);
 				packageDataProvider.refresh();
 			});
 		}
@@ -114,12 +128,19 @@ export async function activate(context: vscode.ExtensionContext) {
 		await addPackage(value);
 	});
 
+	commandTool.registerCommand('pip-manager.updatePackage', async (e?: PackageDataItem) => {
+		if(!e?.name) {
+			return;
+		}
+		await updatePackage(e.name);
+	});
+
 	commandTool.registerCommand('pip-manager.removePackage', async (e?: PackageDataItem) => {
 		let value = '';
 		if(!e){
 			value = await vscode.window.showInputBox({ title: i18n.localize('pip-manager.input.removePackage', 'input remove package name') }) || '';
 		}else{
-			value = e.label;
+			value = e.name;
 		}
 
 		if (!(value && checkRemovePackage(value.split('==')[0]))) {
@@ -139,7 +160,7 @@ export async function activate(context: vscode.ExtensionContext) {
 		if (!e) {
 			value = await vscode.window.showInputBox({ title: i18n.localize('pip-manager.input.packageDescription', 'input find package name') }) || '';
 		} else {
-			value = e.label;
+			value = e.name;
 		}
 		if (!value) {
 			return;
@@ -151,7 +172,7 @@ export async function activate(context: vscode.ExtensionContext) {
 		if (!e) {
 			return;
 		}
-		const value = e.label;
+		const value = e.name;
 		if (!value) {
 			return;
 		}
