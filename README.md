@@ -32,6 +32,7 @@ Manager Python package in vscode
 * open package description in pypi
 * copy package name
 * install package from requirements.txt
+* can select used python source
 
 
 ## Requirements
