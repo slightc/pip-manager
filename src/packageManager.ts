@@ -6,7 +6,7 @@ import axios from 'axios';
 import * as xml2js from 'xml2js';
 import * as utils from './utils';
 import { createDecorator } from './instantiation/common/instantiation';
-import { IOutputChannel } from './types';
+import { IExtensionContext, IOutputChannel } from './types';
 
 interface PackageInfo {
     name: string;
@@ -19,7 +19,10 @@ export type PackageVersionInfo = Omit<PackageInfo, 'version'> & Required<Pick<Pa
 type PackagePickItem = vscode.QuickPickItem & PackageVersionInfo;
 
 enum Source {
+    pypi     = 'https://pypi.python.org/pypi',
     tsinghua = 'https://pypi.tuna.tsinghua.edu.cn/simple',
+    aliyun   = 'http://mirrors.aliyun.com/pypi/simple',
+    douban   = 'http://pypi.douban.com/simple',
 }
 
 enum Category {
@@ -47,10 +50,52 @@ export interface IPackageManager {
 export const IPackageManager = createDecorator<IPackageManager>('packageManager');
 
 export class PackageManager implements IPackageManager {
+    private source: string = Source.tsinghua;
     constructor(
         private _pythonPath: string,
-        @IOutputChannel private readonly output: vscode.OutputChannel
-    ) { }
+        @IOutputChannel private readonly output: vscode.OutputChannel,
+        @IExtensionContext private readonly context: vscode.ExtensionContext,
+    ) {
+        this.updatePythonSource();
+        this.context.subscriptions.push(
+            vscode.workspace.onDidChangeConfiguration(this.onConfigUpdate.bind(this))
+        );
+    }
+
+    onConfigUpdate(e: vscode.ConfigurationChangeEvent) {
+        const careConfig = ['source','sourceCustom'];
+        const checkCareConfigChanged = (careConfig: string[], e: vscode.ConfigurationChangeEvent): boolean => {
+            for(let item of careConfig) {
+                if(e.affectsConfiguration(`pip-manager.${item}`)){
+                    return true;
+                }
+            }
+            return false;
+        };
+        if (checkCareConfigChanged(careConfig, e)) {
+            this.updatePythonSource();
+        }
+    }
+
+    updatePythonSource(){
+        const { source, sourceCustom } = vscode.workspace.getConfiguration('pip-manager');
+        const getSource = (source: string) => {
+            switch (source) {
+                case 'pypi': return Source.pypi;
+                case 'tsinghua': return Source.tsinghua;
+                case 'aliyun': return Source.aliyun;
+                case 'douban': return Source.douban;
+                default:
+                    return '';
+            }
+        };
+
+        if(sourceCustom){
+            this.source = sourceCustom;
+        }else{
+            this.source = getSource(source);
+        }
+    }
 
     updatePythonPath(path: string) {
         this._pythonPath = path;
@@ -106,6 +151,7 @@ export class PackageManager implements IPackageManager {
 
     private pip(args: string[], cancelToken?: vscode.CancellationToken) {
         const python = this.pythonPath;
+  
         return this.execute(python, ['-m', 'pip']
             .concat(args)
             .concat([]),
@@ -114,6 +160,16 @@ export class PackageManager implements IPackageManager {
             vscode.window.showErrorMessage(err.message);
             return Promise.reject();
         });
+    }
+
+    private pipWithSource(iargs: string[], cancelToken?: vscode.CancellationToken) {
+        const args = ([] as string[]).concat(iargs);
+
+        if (this.source) {
+            args.push('-i', this.source);
+        }
+
+        return this.pip(args, cancelToken);
     }
 
     private createPackageInfo(pack: string | PackageInfo): PackageInfo | null {
@@ -142,7 +198,7 @@ export class PackageManager implements IPackageManager {
     }
 
     public async getPackageUpdate(): Promise<PackageVersionInfo[]> {
-        const updates = await this.pip(['list', '--outdated', '--format', 'json']);
+        const updates = await this.pipWithSource(['list', '--outdated', '--format', 'json']);
         return JSON.parse(updates);
     }
     public async getPackageListWithUpdate(): Promise<PackageVersionInfo[]> {
@@ -171,39 +227,36 @@ export class PackageManager implements IPackageManager {
         return packInfo;
     }
 
-    private async installPackage(iargs: string[], cancelToken?: vscode.CancellationToken, source = Source.tsinghua) {
+    private async installPackage(iargs: string[], cancelToken?: vscode.CancellationToken) {
         const args = ['install'].concat(iargs);
-  
-        if (source) {
-            args.push('-i', source);
-        }
-        await this.pip(args, cancelToken);
+
+        await this.pipWithSource(args, cancelToken);
     }
 
-    public async addPackage(pack: string | PackageInfo, cancelToken?: vscode.CancellationToken, source = Source.tsinghua) {
+    public async addPackage(pack: string | PackageInfo, cancelToken?: vscode.CancellationToken) {
         const info = this.createPackageInfo(pack);
         if (!info) {
             throw new Error('Invalid Name');
         }
 
         const name = info.toString();
-        await this.installPackage([name], cancelToken, source);
+        await this.installPackage([name], cancelToken);
     }
-    public async updatePackage(pack: string | PackageInfo, cancelToken?: vscode.CancellationToken, source = Source.tsinghua) {
+    public async updatePackage(pack: string | PackageInfo, cancelToken?: vscode.CancellationToken) {
         const info = this.createPackageInfo(pack);
         if (!info) {
             throw new Error('Invalid Name');
         }
 
         const name = info.toString();
-        await this.installPackage(['--upgrade',name], cancelToken, source);
+        await this.installPackage(['--upgrade',name], cancelToken);
     }
-    public async addPackageFromFile(filePath: string, cancelToken?: vscode.CancellationToken, source = Source.tsinghua) {
+    public async addPackageFromFile(filePath: string, cancelToken?: vscode.CancellationToken) {
         if (!filePath) {
             throw new Error('Invalid Path');
         }
 
-        await this.installPackage(['-r', filePath], cancelToken, source);
+        await this.installPackage(['-r', filePath], cancelToken);
     }
 
     public async removePackage(pack: string | PackageInfo) {

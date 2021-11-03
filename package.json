@@ -143,7 +143,34 @@
 				"view": "pip-manager-installed",
 				"contents": "%pip-manager.view.installed.wait%"
 			}
-		]
+		],
+		"configuration": {
+			"title": "%pip-manager.view.title%",
+			"properties": {
+				"pip-manager.source": {
+					"type": "string",
+					"default": "tsinghua",
+					"enum": [
+						"pypi",
+						"tsinghua",
+						"aliyun",
+						"douban"
+					],
+					"enumDescriptions": [
+						"https://pypi.python.org/pypi",
+						"https://pypi.tuna.tsinghua.edu.cn/simple",
+						"http://mirrors.aliyun.com/pypi/simple",
+						"http://pypi.douban.com/simple"
+					],
+					"description": "%pip-manager.config.source.description%"
+				},
+				"pip-manager.sourceCustom": {
+					"type": "string",
+					"default": "",
+					"description": "%pip-manager.config.sourceCustom.description%"
+				}
+			}
+		}
 	},
 	"extensionDependencies": [
 		"ms-python.python"

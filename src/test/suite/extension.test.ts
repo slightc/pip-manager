@@ -24,43 +24,43 @@ suite('Extension Test Suite', function () {
 					checkPipManager();
 				}, 400);
 				timers.push(timer);
-			})
+			});
 		})().then(done).catch(done);
-	})
+	});
 
 	test('refreshPackage', (done) => {
 		(async () => {
 			await vscode.commands.executeCommand('pip-manager.refreshPackage');
 		})().then(done).catch(done);
-	})
+	});
 
 	test('addPackage', (done) => {
 		(async () => {
 			await vscode.commands.executeCommand('pip-manager.addPackage', 'pyserial');
 		})().then(done).catch(done);
-	})
+	});
 	test('removePackage', (done) => {
 		(async () => {
-			assert.strictEqual(false, await vscode.commands.executeCommand('pip-manager.removePackage', { name: 'pip' }))
-			assert.strictEqual(true, await vscode.commands.executeCommand('pip-manager.removePackage', { name: 'pyserial' }))
+			assert.strictEqual(false, await vscode.commands.executeCommand('pip-manager.removePackage', { name: 'pip' }));
+			assert.strictEqual(true, await vscode.commands.executeCommand('pip-manager.removePackage', { name: 'pyserial' }));
 		})().then(done).catch(done);
-	})
+	});
 
 	test('addPackage again', (done) => {
 		(async () => {
 			await vscode.commands.executeCommand('pip-manager.addPackage', 'pyserial');
 		})().then(done).catch(done);
-	})
+	});
 	test('copyPackageName', (done) => {
 		(async () => {
 			await vscode.commands.executeCommand('pip-manager.copyPackageName', { name: 'pyserial' });
 			assert.strictEqual('pyserial', await vscode.env.clipboard.readText());
 		})().then(done).catch(done);
-	})
+	});
 
 	suiteTeardown(() => {
 		timers.forEach((timer) => {
 			clearInterval(timer);
-		})
-	})
+		});
+	});
 });

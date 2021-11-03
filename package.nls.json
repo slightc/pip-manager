@@ -9,5 +9,7 @@
     "pip-manager.command.packageDescription": "Open in PyPI",
     "pip-manager.command.copyPackageName": "Copy Name",
     "pip-manager.command.installRequirements": "Install python package from file",
-    "pip-manager.command.searchPackage": "Search Package From PyPI"
+    "pip-manager.command.searchPackage": "Search Package From PyPI",
+    "pip-manager.config.source.description": "Install package from this source",
+    "pip-manager.config.sourceCustom.description": "If setting this config, will use this config override source, otherwise keep empty"
 }

@@ -44,7 +44,7 @@ class CommandTool {
 export async function activate(context: vscode.ExtensionContext) {
 	
 	// start register services
-	const services = new ServiceCollection()
+	const services = new ServiceCollection();
 	const instantiationService = new InstantiationService(services);
 	const outputChannel: IOutputChannel = vscode.window.createOutputChannel('Pip Manager');
 	outputChannel.clear();
