@@ -9,12 +9,13 @@ export class PackageDataItem extends vscode.TreeItem {
         public readonly collapsibleState?: vscode.TreeItemCollapsibleState
     ) {
         super(info.name, collapsibleState);
+        const canUpdate = (info.latestVersion && info.latestVersion !== info.version);
         this.name = info.name;
         this.version = info.version;
-        this.description = info.latestVersion ? `${info.version} > ${info.latestVersion}` : info.version;
+        this.description = canUpdate ? `${info.version} > ${info.latestVersion}` : info.version;
         this.iconPath = new vscode.ThemeIcon('circle-outline');
         this.tooltip = `${this.name}@${this.description}`;
-        this.contextValue = info.latestVersion ? 'canUpdate' : '';
+        this.contextValue = canUpdate ? 'canUpdate' : '';
     }
 }
 

@@ -28,6 +28,12 @@ Manager Python package in vscode
 ### search Python package
 ![package-list](https://gitee.com/slightc/pip-manager/raw/main/doc/img/package-search.png)
 
+### package update check
+![package-list](https://gitee.com/slightc/pip-manager/raw/main/doc/img/package-update.png)
+
+### pick package version
+![package-list](https://gitee.com/slightc/pip-manager/raw/main/doc/img/package-pick-version.png)
+
 ### other
 * open package description in pypi
 * copy package name
@@ -42,6 +48,16 @@ must be installed Python Extension (ms-python.python)
 ## Known Issues
 
 ## Release Notes
+
+### 1.1.0
+
+Add pick package version
+Add install source config
+
+### 1.0.15
+
+Add package update check
+Fix installRequirements error in windows.
 
 ### 1.0.13
 

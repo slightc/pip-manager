@@ -12,5 +12,5 @@
     "pip-manager.command.searchPackage": "Search Package From PyPI",
     "pip-manager.config.source.description": "Install package from this source",
     "pip-manager.config.sourceCustom.description": "If setting this config, will use this config override source, otherwise keep empty",
-    "pip-manager.command.pickPackageVersion": "Pick Install Version"
+    "pip-manager.command.pickPackageVersion": "Pick Version"
 }

@@ -6,6 +6,11 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 ## [Unreleased]
 
+## [1.1.0] - 2021-11-30
+### Changed
+- Add pick package version
+- Add install source config
+
 ## [1.0.15] - 2021-10-08
 ### Changed
 - Fix installRequirements error in windows.
