@@ -19,7 +19,7 @@ export type PackageVersionInfo = Omit<PackageInfo, 'version'> & Required<Pick<Pa
 type PackagePickItem = vscode.QuickPickItem & PackageVersionInfo;
 
 enum Source {
-    pypi     = 'https://pypi.python.org/pypi',
+    pypi     = 'https://pypi.python.org/simple',
     tsinghua = 'https://pypi.tuna.tsinghua.edu.cn/simple',
     aliyun   = 'http://mirrors.aliyun.com/pypi/simple',
     douban   = 'http://pypi.douban.com/simple',
@@ -45,6 +45,11 @@ export interface IPackageManager {
     updatePackage(pack: string | PackageInfo, cancelToken?: vscode.CancellationToken, source?: Source): Promise<any>;
     removePackage(pack: string | PackageInfo): Promise<any>;
     searchFromPyPi(keyword: string, page?: number, cancelToken?: vscode.CancellationToken): Promise<{ list: PackagePickItem[], totalPages: number }>;
+    updatePythonPath(path: string): void;
+    addPackageFromFile(filePath: string, cancelToken?: vscode.CancellationToken): Promise<any>;
+    getPackageVersionList(pack: string | PackageInfo, cancelToken?: vscode.CancellationToken): Promise<string[]>;
+    getPackageUpdate(): Promise<PackageVersionInfo[]>;
+    mergePackageListWithUpdate(packInfo: PackageVersionInfo[], updateInfo: PackageVersionInfo[]): PackageVersionInfo[];
 }
 
 export const IPackageManager = createDecorator<IPackageManager>('packageManager');
@@ -53,8 +58,8 @@ export class PackageManager implements IPackageManager {
     private source: string = Source.tsinghua;
     constructor(
         private _pythonPath: string,
-        @IOutputChannel private readonly output: vscode.OutputChannel,
-        @IExtensionContext private readonly context: vscode.ExtensionContext,
+        @IOutputChannel private readonly output: IOutputChannel,
+        @IExtensionContext private readonly context: IExtensionContext,
     ) {
         this.updatePythonSource();
         this.context.subscriptions.push(
@@ -132,7 +137,7 @@ export class PackageManager implements IPackageManager {
             p.stderr.on('data', (data: string) => {
                 if(!(data.indexOf('WARNING') === 0)) {
                     this.output.appendLine(data);
-                    errMsg = data;
+                    errMsg += data;
                 }
             });
 
@@ -149,7 +154,7 @@ export class PackageManager implements IPackageManager {
         });
     }
 
-    private pip(args: string[], cancelToken?: vscode.CancellationToken) {
+    private pip(args: string[], cancelToken?: vscode.CancellationToken, showErrorMessage = true) {
         const python = this.pythonPath;
   
         return this.execute(python, ['-m', 'pip']
@@ -157,19 +162,21 @@ export class PackageManager implements IPackageManager {
             .concat([]),
             cancelToken
         ).catch((err) => {
-            vscode.window.showErrorMessage(err.message);
-            return Promise.reject();
+            if (showErrorMessage) {
+                vscode.window.showErrorMessage(err.message);
+            }
+            return Promise.reject(err);
         });
     }
 
-    private pipWithSource(iargs: string[], cancelToken?: vscode.CancellationToken) {
+    private pipWithSource(iargs: string[], cancelToken?: vscode.CancellationToken, showErrorMessage?: boolean) {
         const args = ([] as string[]).concat(iargs);
 
         if (this.source) {
             args.push('-i', this.source);
         }
 
-        return this.pip(args, cancelToken);
+        return this.pip(args, cancelToken, showErrorMessage);
     }
 
     private createPackageInfo(pack: string | PackageInfo): PackageInfo | null {
@@ -201,26 +208,32 @@ export class PackageManager implements IPackageManager {
         const updates = await this.pipWithSource(['list', '--outdated', '--format', 'json']);
         return JSON.parse(updates);
     }
+
+    public mergePackageListWithUpdate(packInfo: PackageVersionInfo[], updateInfo: PackageVersionInfo[]): PackageVersionInfo[] {
+        const latestVersionMap: Record<string, string>= {};
+        if(updateInfo && updateInfo.length > 0) {
+            updateInfo.forEach((info: any) => {
+                latestVersionMap[info.name] = info.latest_version;
+            });
+            return packInfo.map((info: any) => {
+                const latestVersion = latestVersionMap[info.name];
+                if(latestVersion){
+                    return {
+                        ...info,
+                        latestVersion,
+                    };
+                }
+                return info;
+            });
+        }
+        return packInfo;
+    }
+
     public async getPackageListWithUpdate(): Promise<PackageVersionInfo[]> {
         let packInfo = await this.getPackageList();
         try {
             const updateInfo = await this.getPackageUpdate();
-            const latestVersionMap: Record<string, string>= {};
-            if(updateInfo && updateInfo.length > 0) {
-                updateInfo.forEach((info: any) => {
-                    latestVersionMap[info.name] = info.latest_version;
-                });
-                packInfo = packInfo.map((info: any) => {
-                    const latestVersion = latestVersionMap[info.name];
-                    if(latestVersion){
-                        return {
-                            ...info,
-                            latestVersion,
-                        };
-                    }
-                    return info;
-                });
-            }
+            packInfo = this.mergePackageListWithUpdate(packInfo, updateInfo);
         } catch (error) {
             // ignore error
         }
@@ -328,5 +341,25 @@ export class PackageManager implements IPackageManager {
             list,
             totalPages,
         };
+    }
+
+    public async getPackageVersionList(pack: string | PackageInfo, cancelToken?: vscode.CancellationToken) {
+        const info = this.createPackageInfo(pack);
+
+        if (!info) {
+            throw new Error('Invalid Name');
+        }
+        const name = info.name;
+        let versionList: string[] = [];
+
+        try {
+            await this.pipWithSource(['install', `${name}==`], cancelToken,  false);
+        } catch (err) {
+            const { message } = (err as Error);
+            const [versions] = /(?<=\(from versions: ).+(?=\))/.exec(message) || [];
+            versionList = (versions || '').replace(/\s+/g, '').split(',').filter((version) => (version && version !== 'none')).reverse();
+        }
+
+        return versionList;
     }
 }

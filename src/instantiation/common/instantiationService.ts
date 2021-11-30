@@ -10,6 +10,7 @@ import { ServiceIdentifier, IInstantiationService, ServicesAccessor, _util, opti
 import { ServiceCollection } from './serviceCollection';
 
 // TRACING
+// eslint-disable-next-line @typescript-eslint/naming-convention
 const _enableTracing = false;
 
 class CyclicDependencyError extends Error {
@@ -40,7 +41,9 @@ export class InstantiationService implements IInstantiationService {
 	}
 
 	invokeFunction<R, TS extends any[] = []>(fn: (accessor: ServicesAccessor, ...args: TS) => R, ...args: TS): R {
+		// eslint-disable-next-line @typescript-eslint/naming-convention
 		let _trace = Trace.traceInvocation(fn);
+		// eslint-disable-next-line @typescript-eslint/naming-convention
 		let _done = false;
 		try {
 			const accessor: ServicesAccessor = {
@@ -64,7 +67,8 @@ export class InstantiationService implements IInstantiationService {
 		}
 	}
 
-	createInstance(ctorOrDescriptor: any | SyncDescriptor<any>, ...rest: any[]): any {
+	createInstance<T = any>(ctorOrDescriptor: any | SyncDescriptor<any>, ...rest: any[]): T {
+		// eslint-disable-next-line @typescript-eslint/naming-convention
 		let _trace: Trace;
 		let result: any;
 		if (ctorOrDescriptor instanceof SyncDescriptor) {

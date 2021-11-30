@@ -1,14 +1,16 @@
 import * as vscode from 'vscode';
-import { IPackageManager, PackageManager, PackageVersionInfo } from './packageManager';
+import { IPackageManager, PackageVersionInfo } from './packageManager';
 
 export class PackageDataItem extends vscode.TreeItem {
     public name: string;
+    public version?: string;
     constructor(
         public readonly info: PackageVersionInfo,
         public readonly collapsibleState?: vscode.TreeItemCollapsibleState
     ) {
         super(info.name, collapsibleState);
         this.name = info.name;
+        this.version = info.version;
         this.description = info.latestVersion ? `${info.version} > ${info.latestVersion}` : info.version;
         this.iconPath = new vscode.ThemeIcon('circle-outline');
         this.tooltip = `${this.name}@${this.description}`;
@@ -19,8 +21,10 @@ export class PackageDataItem extends vscode.TreeItem {
 export class PackageDataProvider implements vscode.TreeDataProvider<PackageDataItem> {
     private isFristUpdate: boolean = true;
     private nextUpdateTimer: NodeJS.Timeout | undefined;
+    private packageList: PackageVersionInfo[] = [];
+    private packageUpdateList: PackageVersionInfo[] = [];
     constructor(
-        @IPackageManager private readonly pip: PackageManager
+        @IPackageManager private readonly pip: IPackageManager
     ) { }
 
     getTreeItem(element: PackageDataItem): vscode.TreeItem {
@@ -41,15 +45,19 @@ export class PackageDataProvider implements vscode.TreeDataProvider<PackageDataI
         if(element){
             return Promise.resolve([]);
         }else{
-            let packageList: PackageVersionInfo[] = [];
             if(this.isFristUpdate){
-                packageList = await this.pip.getPackageList();
-                this.requireNextUpdate();
+                this.packageList = await this.pip.getPackageList();
+                /** async fetch update info */
+                this.pip.getPackageUpdate().then((updateInfo) => {
+                    this.packageUpdateList = updateInfo;
+                }).finally(() => {
+                    this.requireNextUpdate();
+                });
             }else{
                 this.isFristUpdate = true;
-                packageList = await this.pip.getPackageListWithUpdate();
             }
-            const datalist = packageList.map((info) => {
+            const packList = this.pip.mergePackageListWithUpdate(this.packageList, this.packageUpdateList);
+            const datalist = packList.map((info) => {
                 return new PackageDataItem(info);
             });
             return Promise.resolve(datalist);

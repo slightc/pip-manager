@@ -27,15 +27,15 @@ suite('Extension Pip Test Suite', function () {
 					checkPipManager();
 				}, 400);
 				timers.push(timer);
-			})
+			});
 		})().then(done).catch(done);
-	})
+	});
 
 	test('have pip api', () => {
 		assert.strictEqual(true, !!pip);
-	})
+	});
 
-	test('pip api: _test_createPackageInfo',() => {
+	test('pip api: create package info',() => {
 		let info = pip._test_createPackageInfo('test==0.0.1');
 		assert.strictEqual('test', info?.name);
 		assert.strictEqual('0.0.1', info?.version);
@@ -59,20 +59,22 @@ suite('Extension Pip Test Suite', function () {
 
 		info = pip._test_createPackageInfo({ name: '' });
 		assert.strictEqual(null, info);
-	})
+	});
 
 	test('pip api: list', (done) => {
 		(async () => {
 			const packageList  = await pip.getPackageList();
 			assert.strictEqual(true, JSON.stringify(packageList).includes('pip'));
 		})().then(done).catch(done);
-	})
+	});
 	test('pip api: list with update', (done) => {
 		(async () => {
 			const packageList  = await pip.getPackageListWithUpdate();
 			assert.strictEqual(true, JSON.stringify(packageList).includes('pip'));
 		})().then(done).catch(done);
-	})
+	});
+
+	this.timeout(20000);
 	test('pip api: search', (done) => {
 		(async () => {
 			const searchResult = await pip.searchFromPyPi('pip');
@@ -91,12 +93,12 @@ suite('Extension Pip Test Suite', function () {
 			}
 			cancelToken.dispose();
 		})().then(done).catch(done);
-	})
+	});
 
 
 	suiteTeardown(() => {
 		timers.forEach((timer) => {
 			clearInterval(timer);
-		})
-	})
+		});
+	});
 });

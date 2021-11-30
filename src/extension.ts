@@ -62,7 +62,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	const [pythonPath, onPythonPathChange] = await pythonExtensionReady();
 	outputChannel.appendLine('Pip Manager Start');
 
-	const pip = instantiationService.createInstance(PackageManager, pythonPath);
+	const pip = instantiationService.createInstance<IPackageManager>(PackageManager, pythonPath);
 	services.set(IPackageManager, pip);
 
 	const packageDataProvider = instantiationService.createInstance(PackageDataProvider);
@@ -309,6 +309,72 @@ export async function activate(context: vscode.ExtensionContext) {
 		});
 
 		updateItemList('', 1);
+	});
+
+	commandTool.registerCommand('pip-manager.pickPackageVersion', async (e?: PackageDataItem) => {
+		let pack = '';
+		if(!e){
+			pack = await vscode.window.showInputBox({ title: i18n.localize('pip-manager.input.pickPackageVersion', 'input pick version package name') }) || '';
+		}else{
+			pack = e.name;
+		}
+
+		pack = pack.split('==')[0];
+		if (!(pack)) {
+			return false;
+		}
+
+		let versionList: string[] = [];
+
+		outputChannel.clear();
+		await vscode.window.withProgress({
+			location: vscode.ProgressLocation.Notification,
+			title: i18n.localize('pip-manager.tip.pickPackageVersion', 'check %0% version', `${pack}`),
+			cancellable: true,
+		}, async (progress, cancelToken) => {
+			versionList = await pip.getPackageVersionList(pack, cancelToken);
+		});
+
+		if (!versionList.length) {
+			vscode.window.showInformationMessage(i18n.localize('pip-manager.tip.noPackageVersion', 'no found version for %0%', `${pack}`));
+			return;
+		}
+
+		const quickPickItems: vscode.QuickPickItem[] = versionList.map((item)=>{
+			const picked = (e?.version && e?.version === item) || false;
+			return {
+				label: item,
+				alwaysShow: true,
+				description: picked ?
+					i18n.localize('pip-manager.tip.currentVersion','%0% current version', pack) :
+					undefined,
+				picked,
+			};
+		});
+
+		const selectedVersion = await new Promise<vscode.QuickPickItem | null>((resolve, reject) => {
+			const qPick = vscode.window.createQuickPick();
+			let value: vscode.QuickPickItem | null = null;
+			qPick.title = i18n.localize('pip-manager.tip.selectPackageVersion', 'select install version for %0%', `${pack}`);
+			qPick.placeholder = e?.version;
+			qPick.items = quickPickItems;
+			qPick.activeItems = quickPickItems.filter((item) => item.picked);
+
+			qPick.onDidChangeSelection((e) => {
+				value = e[0];
+				qPick.hide();
+			});
+			qPick.onDidHide(() => {
+				resolve(value);
+				qPick.dispose();
+			});
+
+			qPick.show();
+		});
+
+		if (selectedVersion && selectedVersion.label !== e?.version) {
+			vscode.commands.executeCommand('pip-manager.addPackage', `${pack}==${selectedVersion.label}`);
+		}
 	});
 
 	return { pip } as ExtensionAPI;

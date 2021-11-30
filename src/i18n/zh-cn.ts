@@ -15,5 +15,10 @@ export default {
         "pip-manager.pick.search.nextBtn": "下一页",
         "pip-manager.pick.search.resultTitle": "%0% 的搜索结果",
         "pip-manager.pick.search.noResultTitle": "无搜索结果",
+        "pip-manager.input.pickPackageVersion": "输入安装指定版本的python包名",
+        "pip-manager.tip.pickPackageVersion": "检测 %0% 的版本",
+        "pip-manager.tip.noPackageVersion": "未找到 %0% 的版本信息",
+        "pip-manager.tip.currentVersion": "%0% 当前版本",
+        "pip-manager.tip.selectPackageVersion": "选择安装 %0% 的版本",
     }
 };
