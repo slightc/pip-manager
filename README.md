@@ -10,6 +10,8 @@
 
 Manager Python package in vscode
 
+if you like this extension, please star [in github](https://github.com/slightc/pip-manager), thanks!
+
 ### Portal
 * [in vscode marketplace](https://marketplace.visualstudio.com/items?itemName=slightc.pip-manager)
 * [in github](https://github.com/slightc/pip-manager)
@@ -52,11 +54,13 @@ must be installed Python Extension (ms-python.python)
 ### 1.1.0
 
 Add pick package version
+
 Add install source config
 
 ### 1.0.15
 
 Add package update check
+
 Fix installRequirements error in windows.
 
 ### 1.0.13
