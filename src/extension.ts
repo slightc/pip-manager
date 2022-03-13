@@ -10,6 +10,7 @@ import * as path from 'path';
 import { ServiceCollection } from './instantiation/common/serviceCollection';
 import { InstantiationService } from './instantiation/common/instantiationService';
 import { IOutputChannel, IExtensionContext } from './types';
+import trace from './trace';
 
 export interface ExtensionAPI {
 	pip: PackageManager
@@ -112,7 +113,15 @@ export async function activate(context: vscode.ExtensionContext) {
 		packageDataProvider.refresh();
 	}));
 
-	context.subscriptions.push(vscode.window.registerTreeDataProvider('pip-manager-installed', packageDataProvider));
+	const pipManagerTreeView = vscode.window.createTreeView('pip-manager-installed', {
+		treeDataProvider: packageDataProvider,
+	});
+    pipManagerTreeView.onDidChangeVisibility((e)=>{
+        if(e.visible) {
+            trace.openView();
+        }
+    });
+    context.subscriptions.push(pipManagerTreeView);
 
 	commandTool.registerCommand('pip-manager.refreshPackage', () => {
 		packageDataProvider.refresh();

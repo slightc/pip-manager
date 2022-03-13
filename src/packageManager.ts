@@ -241,7 +241,7 @@ export class PackageManager implements IPackageManager {
     }
 
     private async installPackage(iargs: string[], cancelToken?: vscode.CancellationToken) {
-        const args = ['install'].concat(iargs);
+        const args = ['install', '-U'].concat(iargs);
 
         await this.pipWithSource(args, cancelToken);
     }
