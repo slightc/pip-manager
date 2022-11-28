@@ -187,9 +187,10 @@
 		"vscode:prepublish": "npm run compile",
 		"compile": "tsc -p ./",
 		"watch": "tsc -watch -p ./",
-		"pretest": "yarn run compile && yarn run lint",
+		"pretest": "npm run compile && npm run lint",
 		"lint": "eslint src --ext ts",
-		"test": "node ./out/test/runTest.js"
+		"test": "node ./out/test/runTest.js",
+		"deploy": "vsce publish --no-yarn"
 	},
 	"devDependencies": {
 		"@types/glob": "^7.1.3",
@@ -203,6 +204,7 @@
 		"glob": "^7.1.7",
 		"mocha": "^8.4.0",
 		"typescript": "^4.3.2",
+		"vsce": "^2.14.0",
 		"vscode-test": "^1.5.2"
 	},
 	"dependencies": {
