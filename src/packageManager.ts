@@ -199,14 +199,23 @@ export class PackageManager implements IPackageManager {
     // eslint-disable-next-line @typescript-eslint/naming-convention
     public _test_createPackageInfo = this.createPackageInfo;
 
+    private tryParsePipListJson(packages: string) {
+        try {
+            return JSON.parse(packages);
+        } catch {
+            throw new Error('Get package failed, please run "pip list --format json" or "pip3 list --format json" check pip support json format');
+        }
+    }
+
     public async getPackageList(): Promise<PackageVersionInfo[]> {
         const packages = await this.pip(['list', '--format', 'json']);
-        return JSON.parse(packages);
+        return this.tryParsePipListJson(packages);
     }
 
     public async getPackageUpdate(): Promise<PackageVersionInfo[]> {
         const updates = await this.pipWithSource(['list', '--outdated', '--format', 'json']);
-        return JSON.parse(updates);
+        return this.tryParsePipListJson(updates);
+
     }
 
     public mergePackageListWithUpdate(packInfo: PackageVersionInfo[], updateInfo: PackageVersionInfo[]): PackageVersionInfo[] {
