@@ -87,10 +87,6 @@ export async function pythonExtensionReady() {
 		return Promise.reject();
 	}
 
-	if (!pythonExt.isActive) {
-		await pythonExt.exports.ready;
-	}
-
 	function getPythonPath(){
 		if(!pythonExt){
 			return '';
@@ -99,7 +95,30 @@ export async function pythonExtensionReady() {
 		return executionDetails?.execCommand?.[0] || '';
 	}
 
-	const pythonPath = getPythonPath();
+    function waitPythonPath() {
+        let timer: NodeJS.Timeout | null = null; 
+        return new Promise<string>((resolve, reject) => {
+            function tryResolvePythonPath() {
+                const pythonPath = getPythonPath();
+                if (pythonPath) {
+                    resolve(pythonPath);
+                }
+            }
+
+            tryResolvePythonPath();
+            timer = setInterval(tryResolvePythonPath, 1000);
+        }).finally(() => {
+            if (timer !== null) {
+                clearInterval(timer);
+            }
+        })
+    }
+
+    // if (!pythonExt.isActive) {
+	// 	await pythonExt.exports.ready;
+	// }
+
+	const pythonPath = await waitPythonPath();
 
 	const onPythonPathChange = (callback: (pythonPath: string) => any) => {
 		return pythonExt.exports.settings.onDidChangeExecutionDetails(() => {

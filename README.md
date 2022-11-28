@@ -19,22 +19,22 @@ if you like this extension, please star [in github](https://github.com/slightc/p
 ## Features
 
 ### list all Python package
-![package-list](https://gitee.com/slightc/pip-manager/raw/main/doc/img/package-list.png)
+![package-list](https://github.com/slightc/pip-manager/raw/main/doc/img/package-list.png)
 
 ### install Python package
-![package-list](https://gitee.com/slightc/pip-manager/raw/main/doc/img/package-add.png)
+![package-list](https://github.com/slightc/pip-manager/raw/main/doc/img/package-add.png)
 
 ### remove Python package
-![package-list](https://gitee.com/slightc/pip-manager/raw/main/doc/img/package-remove.png)
+![package-list](https://github.com/slightc/pip-manager/raw/main/doc/img/package-remove.png)
 
 ### search Python package
-![package-list](https://gitee.com/slightc/pip-manager/raw/main/doc/img/package-search.png)
+![package-list](https://github.com/slightc/pip-manager/raw/main/doc/img/package-search.png)
 
 ### package update check
-![package-list](https://gitee.com/slightc/pip-manager/raw/main/doc/img/package-update.png)
+![package-list](https://github.com/slightc/pip-manager/raw/main/doc/img/package-update.png)
 
 ### pick package version
-![package-list](https://gitee.com/slightc/pip-manager/raw/main/doc/img/package-pick-version.png)
+![package-list](https://github.com/slightc/pip-manager/raw/main/doc/img/package-pick-version.png)
 
 ### other
 * open package description in pypi
