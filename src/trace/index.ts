@@ -1,11 +1,11 @@
-import axios from "axios";
+// import axios from "axios";
 
 class Trace {
   reportUrl: string = "http://analytics.pip-manager.site/feed";
 
   openView() {
-    const url = this.reportUrl + "?u=/openView";
-    axios.put(url);
+    // const url = this.reportUrl + "?u=/openView";
+    // axios.put(url);
   }
 }
 
