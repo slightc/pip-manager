@@ -1,49 +1,25 @@
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
-import { PackageDataItem, PackageDataProvider } from './packageDataProvider';
-import { pythonExtensionReady } from './pythonApi';
-import { PackageManager, necessaryPackage, IPackageManager } from './packageManager';
-import { i18n } from './i18n/localize';
+import { PackageDataItem, PackageDataProvider } from './modules/PackageDataProvider';
+import { PythonExtension } from './modules/PythonExtension';
+import { PackageManager, necessaryPackage } from './modules/PackageManager';
+import { i18n } from './common/i18n/localize';
 import axios from 'axios';
 import * as path from 'path';
-import { ServiceCollection } from './instantiation/common/serviceCollection';
-import { InstantiationService } from './instantiation/common/instantiationService';
-import { IOutputChannel, IExtensionContext } from './types';
-import trace from './trace';
+import { ServiceCollection } from './common/ioc/common/serviceCollection';
+import { InstantiationService } from './common/ioc';
+import { IOutputChannel, IExtensionContext } from './interface/common';
+import trace from './common/trace';
+import { CommandTool } from './modules/CommandTool';
 
 export interface ExtensionAPI {
 	pip: PackageManager
 }
 
-class CommandTool {
-	private map = new Map<string, vscode.Disposable>();
-	constructor(@IExtensionContext private _context: IExtensionContext) { }
-
-	public registerEmptyCommand(name: string) {
-		this.map.set(name, vscode.commands.registerCommand(name, () => { }));
-	}
-	public registerEmptyCommands(names: string[]) {
-		names.forEach((name) => {
-			this.registerEmptyCommand(name);
-		});
-	}
-	public disposeEmptyCommand(name: string) {
-		const command = this.map.get(name);
-		if (command) {
-			command.dispose();
-		}
-	}
-	public registerCommand(name: string, callback: (...args: any[]) => any, thisArg?: any) {
-		this.disposeEmptyCommand(name);
-		this._context.subscriptions.push(vscode.commands.registerCommand(name, callback, thisArg));
-	}
-}
-
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 export async function activate(context: vscode.ExtensionContext) {
-	
 	// start register services
 	const services = new ServiceCollection();
 	const instantiationService = new InstantiationService(services);
@@ -53,20 +29,30 @@ export async function activate(context: vscode.ExtensionContext) {
 	services.set(IExtensionContext, context);
 	services.set(IOutputChannel, outputChannel);
 
-	const commandTool = instantiationService.createInstance(CommandTool);
-	commandTool.registerEmptyCommands([
+	const commandTool = CommandTool.Create(instantiationService, services);
+
+	commandTool.registerEmptyCommand([
 		'pip-manager.addPackage',
 		'pip-manager.refreshPackage',
 		'pip-manager.searchPackage',
 	]);
 
-	const [pythonPath, onPythonPathChange] = await pythonExtensionReady();
+
 	outputChannel.appendLine('Pip Manager Start');
 
-	const pip = instantiationService.createInstance<IPackageManager>(PackageManager, pythonPath);
-	services.set(IPackageManager, pip);
+	const pythonExtension = PythonExtension.Create(instantiationService, services);
+	await pythonExtension.waitPythonExtensionInited();
 
-	const packageDataProvider = instantiationService.createInstance(PackageDataProvider);
+	const pythonPath = pythonExtension.pythonPath;
+	outputChannel.appendLine(`Pip Manager Got python path at ${pythonPath}`);
+
+	const pip = PackageManager.Create(instantiationService, services, pythonPath);
+	const packageDataProvider = PackageDataProvider.Create(instantiationService, services);
+
+	pythonExtension.onPythonPathChange((newPythonPath)=>{
+		pip.updatePythonPath(newPythonPath);
+		packageDataProvider.refresh();
+	});
 
 	// after services registered
 
@@ -107,11 +93,6 @@ export async function activate(context: vscode.ExtensionContext) {
 	}
 
 	// ======================
-
-	context.subscriptions.push(onPythonPathChange((pythonPath) => {
-		pip.updatePythonPath(pythonPath);
-		packageDataProvider.refresh();
-	}));
 
 	const pipManagerTreeView = vscode.window.createTreeView('pip-manager-installed', {
 		treeDataProvider: packageDataProvider,

@@ -1,5 +1,6 @@
+import { createDecorator, InstantiationService, ServiceCollection } from '@/common/ioc';
 import * as vscode from 'vscode';
-import { IPackageManager, PackageVersionInfo } from './packageManager';
+import { IPackageManager, PackageVersionInfo } from './PackageManager';
 
 export class PackageDataItem extends vscode.TreeItem {
     public name: string;
@@ -19,7 +20,12 @@ export class PackageDataItem extends vscode.TreeItem {
     }
 }
 
-export class PackageDataProvider implements vscode.TreeDataProvider<PackageDataItem> {
+interface IPackageDataProvider extends vscode.TreeDataProvider<PackageDataItem> {
+    refresh(): void;
+};
+const IPackageDataProvider = createDecorator<IPackageDataProvider>('packageDataProvider');
+
+export class PackageDataProvider implements IPackageDataProvider {
     private isFristUpdate: boolean = true;
     private nextUpdateTimer: NodeJS.Timeout | undefined;
     private packageList: PackageVersionInfo[] = [];
@@ -27,6 +33,14 @@ export class PackageDataProvider implements vscode.TreeDataProvider<PackageDataI
     constructor(
         @IPackageManager private readonly pip: IPackageManager
     ) { }
+
+    static Create(instantiation: InstantiationService, service?: ServiceCollection) {
+        const instance = instantiation.createInstance<IPackageDataProvider>(this);
+        if (service) {
+            service.set(IPackageDataProvider, instance);
+        }
+        return instance;
+    }
 
     getTreeItem(element: PackageDataItem): vscode.TreeItem {
         return element;
