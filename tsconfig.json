@@ -8,6 +8,7 @@
 		],
 		"sourceMap": true,
 		"rootDir": "src",
+		"baseUrl": "src",
 		"strict": true,   /* enable all strict type-checking options */
 		/* Additional Checks */
 		// "noImplicitReturns": true, /* Report error when not all code paths in function return a value. */
@@ -16,7 +17,12 @@
 		"types": ["reflect-metadata"],
 		"moduleResolution": "node",
 		"experimentalDecorators": true,
-        "emitDecoratorMetadata": true
+        "emitDecoratorMetadata": true,
+		"paths": {
+			"@/*": [
+				"*"
+			]
+		}
 	},
 	"exclude": [
 		"node_modules",

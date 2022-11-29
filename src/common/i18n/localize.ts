@@ -1,5 +1,7 @@
 import zhCn from './zh-cn';
 
+type MessageKey = keyof (typeof zhCn['zh-cn']);
+
 export class I18n {
     private locale: string = 'en';
     private messages: Record<string, Record<string, string>> = {};
@@ -23,6 +25,8 @@ export class I18n {
         this.currentMessage = this.messages[this.locale] || {};
     }
 
+    localize(key: MessageKey, defaultValue: string, ...args: string[]): string;
+    localize(key: string, defaultValue: string, ...args: string[]): string;
     localize(key: string, defaultValue: string, ...args: string[]): string {
         const message = (key && this.currentMessage?.[key]) || defaultValue;
         return message.replace(/\%\d+\%/g, (match: string) => {

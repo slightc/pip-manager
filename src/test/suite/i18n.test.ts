@@ -5,8 +5,8 @@ import * as assert from 'assert';
 import * as vscode from 'vscode';
 // import * as myExtension from '../../extension';
 
-import { i18n } from '../../i18n/localize';
-import zhCn from '../../i18n/zh-cn';
+import { i18n } from '@/common/i18n/localize';
+import zhCn from '@/common/i18n/zh-cn';
 
 suite('Extension I18n Test Suite', () => {
 	test('i18n test: en', () => {

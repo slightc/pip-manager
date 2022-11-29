@@ -2,7 +2,7 @@
 	"name": "pip-manager",
 	"displayName": "Pip Manager",
 	"description": "manage python package",
-	"version": "1.1.2",
+	"version": "1.1.3",
 	"publisher": "slightc",
 	"icon": "media/logo.png",
 	"license": "MIT",
@@ -185,11 +185,14 @@
 	],
 	"scripts": {
 		"vscode:prepublish": "npm run compile",
-		"compile": "tsc -p ./",
-		"watch": "tsc -watch -p ./",
+		"compile": "tsc && tsc-alias",
+		"watch": "npm-run-all --parallel watch:*",
+		"watch:tsc": "tsc -w",
+		"watch:alias": "tsc-alias -w",
 		"pretest": "npm run compile && npm run lint",
 		"lint": "eslint src --ext ts",
 		"test": "node ./out/test/runTest.js",
+		"pack": "vsce package --no-yarn",
 		"deploy": "vsce publish --no-yarn"
 	},
 	"devDependencies": {
@@ -203,6 +206,8 @@
 		"eslint": "^7.27.0",
 		"glob": "^7.1.7",
 		"mocha": "^8.4.0",
+		"npm-run-all": "^4.1.5",
+		"tsc-alias": "^1.7.1",
 		"typescript": "^4.3.2",
 		"vsce": "^2.14.0",
 		"vscode-test": "^1.5.2"

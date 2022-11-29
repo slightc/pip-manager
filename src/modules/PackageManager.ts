@@ -4,9 +4,10 @@ import * as os from 'os';
 import * as vscode from 'vscode';
 import axios from 'axios';
 import * as xml2js from 'xml2js';
-import * as utils from './utils';
-import { createDecorator } from './instantiation/common/instantiation';
-import { IExtensionContext, IOutputChannel } from './types';
+import * as utils from '@/utils';
+import { createDecorator } from '@/common/ioc/common/instantiation';
+import { IExtensionContext, IOutputChannel } from '@/interface/common';
+import { InstantiationService, ServiceCollection } from '@/common/ioc';
 
 interface PackageInfo {
     name: string;
@@ -65,6 +66,14 @@ export class PackageManager implements IPackageManager {
         this.context.subscriptions.push(
             vscode.workspace.onDidChangeConfiguration(this.onConfigUpdate.bind(this))
         );
+    }
+
+    static Create(instantiation: InstantiationService, service: ServiceCollection | undefined, pythonPath: string) {
+        const instance = instantiation.createInstance<IPackageManager>(this, pythonPath);
+        if (service) {
+            service.set(IPackageManager, instance);
+        }
+        return instance;
     }
 
     onConfigUpdate(e: vscode.ConfigurationChangeEvent) {

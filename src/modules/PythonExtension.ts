@@ -1,6 +1,8 @@
 import * as vscode from "vscode";
-import{ Event, Uri } from "vscode";
-import { i18n } from './i18n/localize';
+import { Event, Uri } from "vscode";
+import { i18n } from '@/common/i18n/localize';
+import { createDecorator, InstantiationService, ServiceCollection } from "@/common/ioc";
+import { IExtensionContext } from "@/interface";
 
 export interface PythonExtensionApi {
     /**
@@ -79,31 +81,62 @@ export interface PythonExtensionApi {
     };
 }
 
-export async function pythonExtensionReady() {
-	const pythonExt = vscode.extensions.getExtension<PythonExtensionApi>('ms-python.python');
+export interface IPythonExtension {
+    readonly pythonExtension: vscode.Extension<PythonExtensionApi> | undefined;
+    readonly pythonPath: string;
+    waitPythonExtensionInited: () => Promise<void>;
+    onPythonPathChange: (callback: (pythonPath: string) => any) => void;
+}
 
-	if (!pythonExt) {
-		vscode.window.showErrorMessage(i18n.localize('pip-manager.tip.installPython', 'Please install python extension'));
-		return Promise.reject();
-	}
+export const IPythonExtension = createDecorator<IPythonExtension>('pythonExtension');
 
-	function getPythonPath(){
-		if(!pythonExt){
-			return '';
-		}
-		const executionDetails = pythonExt.exports.settings.getExecutionDetails();
-		return executionDetails?.execCommand?.[0] || '';
-	}
+export class PythonExtension implements IPythonExtension {
+    private _pythonExtension: vscode.Extension<PythonExtensionApi> | undefined;
+    constructor(@IExtensionContext private _context: IExtensionContext) {
+        this.updatePythonExtension();
+    }
 
-    function waitPythonPath() {
-        let timer: NodeJS.Timeout | null = null; 
+    static Create(instantiation: InstantiationService, service?: ServiceCollection) {
+        const instance = instantiation.createInstance<IPythonExtension>(this);
+        if (service) {
+            service.set(IPythonExtension, instance);
+        }
+        return instance;
+    }
+
+    updatePythonExtension() {
+        this._pythonExtension = vscode.extensions.getExtension<PythonExtensionApi>('ms-python.python');
+    }
+
+    get pythonExtension() {
+        if (this._pythonExtension) {
+            return this._pythonExtension;
+        }
+        this.updatePythonExtension();
+        return this._pythonExtension;
+    }
+
+    getPythonPath() {
+        if (!this.pythonExtension) {
+            return '';
+        }
+        const executionDetails = this.pythonExtension.exports.settings.getExecutionDetails();
+        return executionDetails?.execCommand?.[0] || '';
+    }
+
+    get pythonPath() {
+        return this.getPythonPath();
+    }
+
+    private waitPythonPath() {
+        let timer: NodeJS.Timeout | null = null;
         return new Promise<string>((resolve, reject) => {
-            function tryResolvePythonPath() {
-                const pythonPath = getPythonPath();
+            const tryResolvePythonPath = () => {
+                const pythonPath = this.getPythonPath();
                 if (pythonPath) {
                     resolve(pythonPath);
                 }
-            }
+            };
 
             tryResolvePythonPath();
             timer = setInterval(tryResolvePythonPath, 1000);
@@ -111,21 +144,20 @@ export async function pythonExtensionReady() {
             if (timer !== null) {
                 clearInterval(timer);
             }
-        })
+        });
     }
 
-    // if (!pythonExt.isActive) {
-	// 	await pythonExt.exports.ready;
-	// }
+    async waitPythonExtensionInited() {
+        await this.waitPythonPath();
+    }
 
-	const pythonPath = await waitPythonPath();
-
-	const onPythonPathChange = (callback: (pythonPath: string) => any) => {
-		return pythonExt.exports.settings.onDidChangeExecutionDetails(() => {
-			const pythonPath = getPythonPath();
-			return callback(pythonPath);
-		});
-	};
-
-	return [pythonPath, onPythonPathChange, pythonExt] as [typeof pythonPath, typeof onPythonPathChange, typeof pythonExt];
+    onPythonPathChange(callback: (pythonPath: string) => any) {
+        const dispose = this.pythonExtension?.exports.settings.onDidChangeExecutionDetails(() => {
+            const pythonPath = this.getPythonPath();
+            return callback(pythonPath);
+        });
+        if (dispose) {
+            this._context.subscriptions.push(dispose);
+        }
+    };
 }
